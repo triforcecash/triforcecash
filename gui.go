@@ -5,7 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"github.com/andlabs/ui"
-	"github.com/triforcecash/triforce/core"
+	"github.com/triforcecash/triforcecash/core"
 	"time"
 )
 

@@ -3,7 +3,7 @@ package core
 import (
 	"bytes"
 	//"encoding/hex"
-	"github.com/triforcecash/triforce/core/sign"
+	"github.com/triforcecash/triforcecash/core/sign"
 	"math/big"
 	"time"
 )

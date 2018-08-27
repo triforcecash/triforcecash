@@ -3,7 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
-	"github.com/triforcecash/triforce/core"
+	"github.com/triforcecash/triforcecash/core"
 	"sync"
 )
 

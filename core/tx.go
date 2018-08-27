@@ -2,7 +2,7 @@ package core
 
 import (
 	"bytes"
-	"github.com/triforcecash/triforce/core/sign"
+	"github.com/triforcecash/triforcecash/core/sign"
 	"time"
 )
 

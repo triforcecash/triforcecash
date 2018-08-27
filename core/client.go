@@ -5,7 +5,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
-	"github.com/triforcecash/triforce/core/sign"
+	"github.com/triforcecash/triforcecash/core/sign"
 	"log"
 	"os"
 	"time"
