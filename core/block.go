@@ -126,7 +126,7 @@ func (self *Block) Next() *Block {
 }
 
 func (self *Block) Check() bool {
-	
+
 	if !self.Head.Check() || !self.Txs.Check() {
 		return false
 	}
@@ -202,7 +202,7 @@ func MineServ(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	blk := DecodeBlock(blb)
-	if blk.Head.Rate().Cmp(Difficult) == 1 && Main!=nil && Main.Higher.Id <= blk.Head.Id && blk.Head.Id <= CurrentId(){
+	if blk.Head.Rate().Cmp(Difficult) == 1 && Main != nil && Main.Higher.Id <= blk.Head.Id && blk.Head.Id <= CurrentId() {
 		if !blk.Head.SignTokenIsUsed() && !blk.Head.PublicKeysAreBanned() {
 			blk.Head.Sign(Priv)
 			Put(signtokenprfx, blk.Head.SignKey(), blk.Head.Hash())

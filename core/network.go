@@ -196,14 +196,14 @@ func Network() {
 		}
 	}()
 
-	go func(){
-		for{
-			time.Sleep(1800*time.Second)
+	go func() {
+		for {
+			time.Sleep(1800 * time.Second)
 			hostsignoremux.Lock()
-			HostsIgnore    = map[string]int{"127.0.0.1": 0, "0.0.0.0": 0, "255.255.255.255": 0}
+			HostsIgnore = map[string]int{"127.0.0.1": 0, "0.0.0.0": 0, "255.255.255.255": 0}
 			hostsignoremux.Unlock()
 		}
-		}()
+	}()
 }
 
 func PostHost(res http.ResponseWriter, req *http.Request) {

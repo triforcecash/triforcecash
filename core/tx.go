@@ -81,8 +81,8 @@ func (t *Tx) Check() bool {
 	if len(t.Encode()) > txmaxlen {
 		return false
 	}
-	
-	if len(t.Pubs) != len(t.Signs){
+
+	if len(t.Pubs) != len(t.Signs) {
 		return false
 	}
 
