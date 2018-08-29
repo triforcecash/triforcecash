@@ -121,8 +121,8 @@ func CurrentId() uint64 {
 	return uint64((time.Now().Unix() - StartTime) / BlockTime)
 }
 
-func CreateNewBlock() {
-	curid := CurrentId()
+func CreateNewBlock(curid uint64) {
+
 
 	if Mineblocks {
 
@@ -176,12 +176,11 @@ func CreateNewBlock() {
 	}
 }
 
-func Update() {
+func Update(curid uint64) {
 	var mx *Chain
 	var mn *Chain
 	//var mxk string
 	var mnk string
-	curid := CurrentId()
 
 	MapHosts(func(url string, host *Host) {
 		res, _ := http.Get(url + apimainchain)
@@ -245,10 +244,11 @@ func Update() {
 
 func Updater() {
 	go func() {
-		Update()
+		Update(CurrentId())
 		for {
-			CreateNewBlock()
-			Update()
+			cid:=CurrentId()
+			CreateNewBlock(cid)
+			Update(cid)
 			time.Sleep(250 * time.Millisecond)
 		}
 	}()
