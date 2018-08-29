@@ -42,8 +42,8 @@ func (self *Header) Rate() *big.Int {
 	buf1.Write(self.Pubs[0])
 	buf1.Write(self.Nonces[0])
 	var buf2 bytes.Buffer
-	buf2.Write(self.Pubs[0])
-	buf2.Write(self.Nonces[0])
+	buf2.Write(self.Pubs[1])
+	buf2.Write(self.Nonces[1])
 	k0 := coef(buf1.Bytes())
 	k1 := coef(buf2.Bytes())
 	x.Mul(x, k0)
