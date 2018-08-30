@@ -160,14 +160,11 @@ func (self *Block) Mine() {
 	b.Head.Pubs = [][]byte{Pub, Pub}
 	b.Head.Nonces = [][]byte{Nonce, Nonce}
 	if b.Head.Rate().Cmp(Difficult) == 1 {
-		Signmux.Lock()
-		if !b.Head.SignTokenIsUsed() {
-			b.Head.Sign(Priv)
+
+		if b.Head.Sign(Priv) {
 			b.Head.Cache(true, true, 0)
-			b.Head.CheckFraud()
 			NewChain(b.Head)
 		}
-		Signmux.Unlock()
 	}
 
 	MapHosts(func(url string, host *Host) {
@@ -179,16 +176,10 @@ func (self *Block) Mine() {
 		b := self.Fork()
 		b.Head.Pubs = [][]byte{Pub, host.Pub}
 		b.Head.Nonces = [][]byte{Nonce, host.Nonce}
-		if b.Head.Rate().Cmp(Difficult) == 1 {
-			Signmux.Lock()
-			if !b.Head.SignTokenIsUsed() {
-				b.Head.Sign(Priv)
-				b.Head.TakeSignToken()
-				var buf bytes.Buffer
-				buf.Write(b.Encode())
-				go http.Post(url+mineapi, "application/octet-stream", &buf)
-			}
-			Signmux.Unlock()
+		if b.Head.Rate().Cmp(Difficult) == 1 && b.Head.Sign(Priv) {
+			var buf bytes.Buffer
+			buf.Write(b.Encode())
+			go http.Post(url+mineapi, "application/octet-stream", &buf)
 		}
 
 	})
@@ -203,10 +194,7 @@ func MineServ(res http.ResponseWriter, req *http.Request) {
 	}
 	blk := DecodeBlock(blb)
 	if blk.Head.Rate().Cmp(Difficult) == 1 && Main != nil && Main.Higher.Id <= blk.Head.Id && blk.Head.Id <= CurrentId() {
-		Signmux.Lock()
-		if !blk.Head.SignTokenIsUsed() && !blk.Head.PublicKeysAreBanned() {
-			blk.Head.Sign(Priv)
-			blk.Head.TakeSignToken()
+		if blk.Head.Sign(Priv) {
 			blk.Head.Txs = Hash(blk.Txs.Encode())
 			if blk.Head.Check() {
 				blk.Txs.Cache()
@@ -214,6 +202,5 @@ func MineServ(res http.ResponseWriter, req *http.Request) {
 				NewChain(blk.Head)
 			}
 		}
-		Signmux.Unlock()
 	}
 }

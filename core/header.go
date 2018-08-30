@@ -71,14 +71,23 @@ func (self *Header) data() []byte {
 	return b.Bytes()
 }
 
-func (self *Header) Sign(priv []byte) {
-	sig, pub := sign.GenSign(self.data(), priv)
+func (self *Header) Sign(priv []byte) bool {
 
-	for i, p := range self.Pubs {
-		if bytes.Equal(p, pub) {
-			self.Signs[i] = sig
+	Signmux.Lock()
+	defer Signmux.Unlock()
+	if !self.SignTokenIsUsed() {
+
+		sig, pub := sign.GenSign(self.data(), priv)
+
+		for i, p := range self.Pubs {
+			if bytes.Equal(p, pub) {
+				self.Signs[i] = sig
+			}
 		}
+		self.TakeSignToken()
+		return true
 	}
+	return false
 }
 
 func (self *Header) Check() bool {
