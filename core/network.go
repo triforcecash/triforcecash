@@ -59,12 +59,12 @@ func AddHost(host *Host) {
 	}
 }
 
-func AddHostAddr(addr string){
-	a,p:=SplitAddr(addr)
-	if p==""{
-		p=":8075"
+func AddHostAddr(addr string) {
+	a, p := SplitAddr(addr)
+	if p == "" {
+		p = ":8075"
 	}
-	AddHost(&Host{Addr:a,Port:p,Prot:protocol,})
+	AddHost(&Host{Addr: a, Port: p, Prot: protocol})
 }
 
 func UpdateHost(host *Host) {
@@ -113,7 +113,6 @@ func Network() {
 	go func() {
 		for {
 
-	
 			var buf bytes.Buffer
 			if !ClientOnly {
 				b, _ := json.Marshal(&Host{

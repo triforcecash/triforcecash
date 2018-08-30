@@ -123,7 +123,6 @@ func CurrentId() uint64 {
 
 func CreateNewBlock(curid uint64) {
 
-
 	if Mineblocks {
 
 		if Main != nil {
@@ -246,7 +245,7 @@ func Updater() {
 	go func() {
 		Update(CurrentId())
 		for {
-			cid:=CurrentId()
+			cid := CurrentId()
 			CreateNewBlock(cid)
 			Update(cid)
 			time.Sleep(250 * time.Millisecond)

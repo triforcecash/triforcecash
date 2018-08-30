@@ -68,9 +68,10 @@ var (
 	Difficult    = new(big.Int).SetInt64(1000)
 	MinDifficult = new(big.Int).SetInt64(1000)
 
-	Nonce []byte
-	Priv  []byte
-	Pub   []byte
+	Nonce   []byte
+	Priv    []byte
+	Pub     []byte
+	Signmux sync.Mutex
 
 	one = new(big.Int).SetInt64(1)
 )
