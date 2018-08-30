@@ -21,7 +21,6 @@ const (
 	apipushtx    = "/api/pushtx"
 	apimainchain = "/api/main"
 	statelen     = 48
-	lobby        = "https://api.keyvalue.xyz/a937e5cd/triforcehosts"
 	protocol     = "http://"
 )
 

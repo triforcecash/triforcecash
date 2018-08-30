@@ -37,25 +37,6 @@ func HostsServ(res http.ResponseWriter, req *http.Request) {
 	res.Write(b)
 }
 
-func GetHostsFromLobby() {
-	res, err := http.Get(lobby)
-	if res == nil {
-		log.Println(err)
-		return
-	}
-	if err != nil {
-		log.Println(err)
-	}
-	blob, _ := ioutil.ReadAll(res.Body)
-	res.Body.Close()
-	hosts := Blob(blob).Split()
-	for _, addr := range hosts {
-		host := new(Host)
-		host.Addr, host.Port = SplitAddr(string(addr))
-		AddHost(host)
-	}
-}
-
 func SplitAddr(address string) (addr, port string) {
 	tmp := strings.Split(address, ":")
 	if len(tmp) == 1 {
@@ -76,6 +57,14 @@ func AddHost(host *Host) {
 		Hosts[host.Addr] = host
 		hostsmux.Unlock()
 	}
+}
+
+func AddHostAddr(addr string){
+	a,p:=SplitAddr(addr)
+	if p==""{
+		p=":8075"
+	}
+	AddHost(&Host{Addr:a,Port:p,Prot:protocol,})
 }
 
 func UpdateHost(host *Host) {
@@ -115,27 +104,6 @@ func IsIgnored(addr string) bool {
 	return ignored
 }
 
-func PostHostsToLobby() {
-
-	maxlen := 100000
-
-	//add self
-	hosts := [][]byte{[]byte(PublicIp + Port)}
-	l := 0
-	hostsmux.Lock()
-	for _, host := range Hosts {
-		l += len(host.Addr) + len(host.Port)
-		if l > maxlen {
-			break
-		}
-		hosts = append(hosts, []byte(host.Addr+host.Port))
-	}
-	hostsmux.Unlock()
-	var buf bytes.Buffer
-	buf.Write(Join(hosts))
-	http.Post(lobby, "octet-stream", &buf)
-}
-
 func Network() {
 
 	if !ClientOnly {
@@ -145,8 +113,7 @@ func Network() {
 	go func() {
 		for {
 
-			GetHostsFromLobby()
-
+	
 			var buf bytes.Buffer
 			if !ClientOnly {
 				b, _ := json.Marshal(&Host{
@@ -189,9 +156,6 @@ func Network() {
 				AddHost(host)
 			}
 
-			if !ClientOnly {
-				PostHostsToLobby()
-			}
 			time.Sleep(30 * time.Second)
 		}
 	}()

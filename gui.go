@@ -17,12 +17,13 @@ var (
 func main() {
 	port := flag.Int("port", 8075, "Port")
 	hostname := flag.String("host", "127.0.0.1", "Public ip")
+	lobby := flag.String("lobby", "185.234.15.72:8075", "Lobby node")
 	clientonly := flag.Bool("client", false, "You will not be a host")
 	flag.Parse()
 	core.Port = fmt.Sprint(":", *port)
 	core.PublicIp = *hostname
 	core.ClientOnly = *clientonly
-
+	core.AddHostAddr(*lobby)
 	core.Start()
 	defer core.Stop()
 
