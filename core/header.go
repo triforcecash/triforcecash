@@ -113,11 +113,8 @@ func (self *Header) GetPrev() *Header {
 	if err != nil {
 		return nil
 	}
-	s = h.Check()
-	if !s {
-		return nil
-	}
-	if IsPrev(h, self) {
+
+	if s && IsPrev(h, self) {
 		return h
 	}
 	return nil

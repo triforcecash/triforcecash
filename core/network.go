@@ -54,6 +54,9 @@ func AddHost(host *Host) {
 		if host.Prot != "http://" || host.Prot != "https://" {
 			host.Prot = protocol
 		}
+		if host.Port == "" {
+			host.Port= ":8075"
+		}
 		Hosts[host.Addr] = host
 		hostsmux.Unlock()
 	}
@@ -61,9 +64,6 @@ func AddHost(host *Host) {
 
 func AddHostAddr(addr string) {
 	a, p := SplitAddr(addr)
-	if p == "" {
-		p = ":8075"
-	}
 	AddHost(&Host{Addr: a, Port: p, Prot: protocol})
 }
 
@@ -75,6 +75,16 @@ func UpdateHost(host *Host) {
 	host0, ok := Hosts[host.Addr]
 	if ok {
 		host.Karma = host0.Karma
+	} else {
+		host.Karma = 0
+	}
+	
+	if host.Port ==""{
+		host.Port = ":8075"
+	}
+
+	if host.Prot != "http://" && host.Prot != "https://"{
+		host.Prot=protocol
 	}
 	Hosts[host.Addr] = host
 	hostsmux.Unlock()
@@ -170,7 +180,9 @@ func Network() {
 }
 
 func PostHost(res http.ResponseWriter, req *http.Request) {
+	hostsmux.Lock()
 	bh, _ := json.Marshal(Hosts)
+	hostsmux.Unlock()
 	res.Write(bh)
 
 	b, _ := ioutil.ReadAll(req.Body)
