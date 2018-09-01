@@ -7,7 +7,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"regexp"
+
 	"strings"
 	"time"
 )
@@ -37,83 +37,6 @@ func HostsServ(res http.ResponseWriter, req *http.Request) {
 	res.Write(b)
 }
 
-func SplitAddr(address string) (addr, port string) {
-	tmp := strings.Split(address, ":")
-	if len(tmp) == 1 {
-		return tmp[0], ""
-	}
-	if len(tmp) == 2 {
-		return tmp[0], ":" + tmp[1]
-	}
-	return "", ""
-}
-
-func AddHost(host *Host) {
-	if !HostExist(host.Addr) && !IsIgnored(host.Addr) && CorrectAddress(host.Addr) {
-		hostsmux.Lock()
-		if host.Prot != "http://" || host.Prot != "https://" {
-			host.Prot = protocol
-		}
-		if host.Port == "" {
-			host.Port= ":8075"
-		}
-		Hosts[host.Addr] = host
-		hostsmux.Unlock()
-	}
-}
-
-func AddHostAddr(addr string) {
-	a, p := SplitAddr(addr)
-	AddHost(&Host{Addr: a, Port: p, Prot: protocol})
-}
-
-func UpdateHost(host *Host) {
-	if IsIgnored(host.Addr) {
-		return
-	}
-	hostsmux.Lock()
-	host0, ok := Hosts[host.Addr]
-	if ok {
-		host.Karma = host0.Karma
-	} else {
-		host.Karma = 0
-	}
-	
-	if host.Port ==""{
-		host.Port = ":8075"
-	}
-
-	if host.Prot != "http://" && host.Prot != "https://"{
-		host.Prot=protocol
-	}
-	Hosts[host.Addr] = host
-	hostsmux.Unlock()
-}
-
-func HostExist(addr string) bool {
-	hostsmux.Lock()
-	_, ok := Hosts[addr]
-	hostsmux.Unlock()
-	return ok
-}
-
-func CorrectAddress(addr string) bool {
-	m, _ := regexp.MatchString(`(^[a-zA-Z0-9\.\:\-]+$)`, addr)
-	return m
-}
-func IgnoreAddress(addr string) {
-	hostsignoremux.Lock()
-	HostsIgnore[addr] = 0
-	hostsignoremux.Unlock()
-}
-
-func IsIgnored(addr string) bool {
-	hostsignoremux.Lock()
-	_, ignored := HostsIgnore[addr]
-	hostsignoremux.Unlock()
-	return ignored
-}
-
 func Network() {
 
 	if !ClientOnly {
@@ -125,12 +48,16 @@ func Network() {
 
 			var buf bytes.Buffer
 			if !ClientOnly {
-				b, _ := json.Marshal(&Host{
+				myhost := &Host{
+					Addr:  PublicIp,
 					Port:  Port,
 					Prot:  protocol,
 					Pub:   Pub,
 					Nonce: Nonce,
-				})
+				}
+				myhost.Sign()
+
+				b, _ := json.Marshal(myhost)
 
 				buf.Write(b)
 
@@ -141,16 +68,18 @@ func Network() {
 			MapHosts(func(url string, host *Host) {
 				if host.Karma < (-20) {
 					IgnoreAddress(host.Addr)
-					hostsmux.Lock()
-					delete(Hosts, host.Addr)
-					hostsmux.Unlock()
 					return
 				}
+				if host.Karma > (20) {
+					host.Karma = 20
+				}
+
 				res, err := http.Post(url+"/api/pushhost", "application/json", &buf)
 				if err != nil {
 					host.Karma -= 1
 					return
 				}
+
 				resblob, _ := ioutil.ReadAll(res.Body)
 				res.Body.Close()
 
@@ -165,7 +94,7 @@ func Network() {
 				AddHost(host)
 			}
 
-			time.Sleep(30 * time.Second)
+			time.Sleep(90 * time.Second)
 		}
 	}()
 

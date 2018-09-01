@@ -131,6 +131,7 @@ type Host struct {
 	Pub   []byte
 	Nonce []byte
 	Karma int64
+	Proof []byte
 }
 
 func Reward(id uint64) uint64 {
