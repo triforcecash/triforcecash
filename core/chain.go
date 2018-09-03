@@ -61,7 +61,7 @@ func (self *Chain) Start() {
 	num := new(big.Int).SetInt64(0)
 	sum := new(big.Int).SetInt64(0)
 
-	for d := 0; d < checkdepth; d++ {
+	for d := 0; d < Checkdepth; d++ {
 
 		num.Add(num, one)
 		sum.Add(sum, h.Rate())
@@ -88,7 +88,7 @@ func (self *Chain) Start() {
 
 func (self *Chain) StartFullCheck() {
 	h := self.Higher
-	for d := 0; d < checkdepth; d++ {
+	for d := 0; d < Checkdepth; d++ {
 		if Main != self {
 			return
 		}

@@ -12,10 +12,9 @@ const (
 	txsmaxlen    = 1 << 21
 	txmaxlen     = 1 << 12
 	headermaxlen = 1 << 12
-	StartTime    = 1535364486
+	StartTime    = 1535982470
 	BlockTime    = 90
-	checktimeout = 90
-	checkdepth   = 1000
+	checktimeout = 450
 	dbapi        = "/api/db?key="
 	mineapi      = "/api/mine"
 	apipushtx    = "/api/pushtx"
@@ -50,6 +49,9 @@ var (
 
 	Mineblocks bool
 	Minecpu    bool
+
+	Checkdepth   = 1000
+	
 
 	headprfx      = []byte("head-")
 	stateprfx     = []byte("state-")
