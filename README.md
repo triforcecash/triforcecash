@@ -8,7 +8,8 @@ The program does not store it, if you lose the seed, you will lose access to the
 Port (default 8075) 
 ### -host
 Your public ip
-
+### -lobby
+Should specify if default lobby does not work.
 ## API
 
 ### Create Account
