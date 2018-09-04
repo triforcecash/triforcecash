@@ -7,9 +7,18 @@ The program does not store it, if you lose the seed, you will lose access to the
 ### -port
 Port (default 8075) 
 ### -host
-Your public ip
+Your public ip (required for mining).
 ### -lobby
 Should specify if default lobby does not work.
+## Example
+### Run
+```bash
+nohup triforcecash_node_linux_amd64 -seed mypassword -host 123.123.123.123 & 
+```
+### Stop
+```bash
+killall triforcecash_node_linux_amd64 
+```
 ## API
 
 ### Create Account
