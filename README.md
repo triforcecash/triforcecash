@@ -15,6 +15,7 @@ Should specify if default lobby does not work.
 ```bash
 nohup triforcecash_node_linux_amd64 -seed mypassword -host 123.123.123.123 & 
 ```
+Port 8075 must be open for tcp connections
 ### Stop
 ```bash
 killall triforcecash_node_linux_amd64 
