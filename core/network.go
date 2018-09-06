@@ -213,9 +213,6 @@ func MapHosts(f func(url string, h *Host)) {
 	hostsmux.Lock()
 	for _, host := range Hosts {
 		hostsmux.Unlock()
-		if host.Prot != "http://" || host.Prot != "https://" {
-			host.Prot = protocol
-		}
 		f(host.Prot+host.Addr+host.Port, host)
 		hostsmux.Lock()
 	}

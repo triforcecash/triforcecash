@@ -5,7 +5,6 @@ import (
 	"log"
 	"math/big"
 	"net/http"
-	"sort"
 	"time"
 )
 
@@ -129,32 +128,9 @@ func CreateNewBlock(curid uint64) {
 
 			if Main.Higher.Id < curid {
 
-				poolmux.Lock()
-				sort.Slice(TxsPool, func(i, j int) bool {
-					a := TxsPool[i]
-					b := TxsPool[j]
-					return float64(a.Fee)/float64(len(a.Encode())) > float64(b.Fee)/float64(len(b.Encode()))
-				})
-				txs := TxsList{}
-				l := 0
-				i := -1
-				var tx *Tx
-
-				for i, tx = range TxsPool {
-					txlen := len(tx.Encode())
-					if l+3+txlen > txsmaxlen {
-						i--
-						break
-					}
-					txs = append(txs, tx)
-					l += 3 + txlen
-				}
-				TxsPool = TxsPool[i+1 : len(TxsPool)]
-				poolmux.Unlock()
-
 				newblock := &Block{
 					Head: Main.Higher.Next(),
-					Txs:  txs,
+					Txs:  GetTxsFromPool(),
 				}
 				err := newblock.Create()
 				if err != nil {

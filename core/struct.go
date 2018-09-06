@@ -50,8 +50,7 @@ var (
 	Mineblocks bool
 	Minecpu    bool
 
-	Checkdepth   = 1000
-	
+	Checkdepth = 1000
 
 	headprfx      = []byte("head-")
 	stateprfx     = []byte("state-")
