@@ -1,3 +1,14 @@
+# Build
+```bash
+go get github.com/syndtr/goleveldb/leveldb
+go get golang.org/x/crypto/sha3
+go get golang.org/x/crypto/ed25519
+go get github.com/andlabs/ui
+go get github.com/triforcecash/triforcecash
+cd $GOPATH/src/github.com/triforcecash/triforcecash
+go build node.go
+go build gui.go
+```
 # Usage
 ## Command line args
 ### -seed 
