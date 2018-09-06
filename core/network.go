@@ -7,8 +7,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -23,6 +23,8 @@ func Serve() {
 	http.HandleFunc("/api/hosts", HostsServ)
 	http.HandleFunc("/api/send", SendServ)
 	http.HandleFunc("/api/genaccount", GenAccountServ)
+	http.HandleFunc("/api/updatenonce", UpdateNonce)
+	http.HandleFunc("/api/updatenoncehex", UpdateNonceHex)
 	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {})
 
 	http.ListenAndServe(Port, nil)
@@ -276,5 +278,40 @@ func GenAccountServ(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	res.Write(b)
+
+}
+
+var UpdateNonceMux sync.Mutex
+
+func UpdateNonce(res http.ResponseWriter, req *http.Request) {
+	nonce, err := ioutil.ReadAll(req.Body)
+	req.Body.Close()
+	if err != nil {
+		return
+	}
+
+	UpdateNonceMux.Lock()
+	defer UpdateNonceMux.Unlock()
+
+	if bytes.Compare(Hash(append(Pub, Nonce...)), Hash(append(Pub, nonce...))) == 1 {
+		Nonce = nonce
+	}
+
+}
+func UpdateNonceHex(res http.ResponseWriter, req *http.Request) {
+	hexnonce := req.URL.Query().Get("nonce")
+
+	nonce, err := hex.DecodeString(hexnonce)
+
+	if err != nil {
+		return
+	}
+
+	UpdateNonceMux.Lock()
+	defer UpdateNonceMux.Unlock()
+
+	if bytes.Compare(Hash(append(Pub, Nonce...)), Hash(append(Pub, nonce...))) == 1 {
+		Nonce = nonce
+	}
 
 }
