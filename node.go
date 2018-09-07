@@ -23,7 +23,7 @@ func main() {
 		core.Mineblocks = true
 		core.Minecpu = true
 	}
-	core.Checkdepth=*checkdepth
+	core.Checkdepth = *checkdepth
 	core.Port = fmt.Sprint(":", *port)
 	core.PublicIp = *hostname
 	core.ClientOnly = *clientonly

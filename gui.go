@@ -21,7 +21,7 @@ func main() {
 	lobby := flag.String("lobby", "185.234.15.72:8075", "Lobby node")
 	clientonly := flag.Bool("client", false, "You will not be a host")
 	flag.Parse()
-	core.Checkdepth=*checkdepth
+	core.Checkdepth = *checkdepth
 	core.Port = fmt.Sprint(":", *port)
 	core.PublicIp = *hostname
 	core.ClientOnly = *clientonly

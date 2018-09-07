@@ -312,6 +312,9 @@ func UpdateNonceHex(res http.ResponseWriter, req *http.Request) {
 
 	if bytes.Compare(Hash(append(Pub, Nonce...)), Hash(append(Pub, nonce...))) == 1 {
 		Nonce = nonce
+		res.Write([]byte("true"))
+	}else{
+		res.Write([]byte("false"))
 	}
 
 }
