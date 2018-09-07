@@ -34,7 +34,7 @@ killall triforcecash_node_linux_amd64
 ```
 ## CPU Miner
 You can run an unlimited number of miners on different computers that will calculate the nonce for one node.
-###Run
+### Run
 Copy public key from Receive tab in GUI Wallet.
 Enter the node address and port after the -host flag.
 ```bash
