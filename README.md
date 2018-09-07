@@ -32,6 +32,14 @@ To check in browser enter address your_ip:8075/api/hosts
 ```bash
 killall triforcecash_node_linux_amd64 
 ```
+## CPU Miner
+You can run an unlimited number of miners on different computers that will calculate the nonce for one node.
+###Run
+Copy public key from Receive tab in GUI Wallet.
+Enter the node address and port after the -host flag.
+```bash
+ ./miner.go -host 127.0.0.1:8075 -publickey a363f3675039caf20b8f805479051482e3c87b69d39b9b94f568778e8335a586 -threads 6
+```
 ## API
 
 ### Create Account
