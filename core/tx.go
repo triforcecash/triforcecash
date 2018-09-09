@@ -122,11 +122,11 @@ func (t *Tx) Transfer(states StateMap) bool {
 	}
 }
 
-func (self *Tx) Addrs()[]string{
+func (self *Tx) Addrs() []string {
 	var tmpaddrs []string
 	tmpaddrs = append(tmpaddrs, self.Sender())
 	for _, o := range self.Outs {
-			tmpaddrs = append(tmpaddrs, out(o).getAddr())
+		tmpaddrs = append(tmpaddrs, out(o).getAddr())
 	}
 	return tmpaddrs
 }

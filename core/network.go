@@ -13,7 +13,7 @@ import (
 )
 
 func Serve() {
-	if FullNode{
+	if FullNode {
 		http.HandleFunc("/api/txshistory", GetTxsHistoryServ)
 	}
 	http.HandleFunc("/api/db", DBServer)
@@ -316,24 +316,23 @@ func UpdateNonceHex(res http.ResponseWriter, req *http.Request) {
 	if bytes.Compare(Hash(append(Pub, Nonce...)), Hash(append(Pub, nonce...))) == 1 {
 		Nonce = nonce
 		res.Write([]byte("true"))
-	}else{
+	} else {
 		res.Write([]byte("false"))
 	}
 
 }
 
-
-func GetTxsHistoryServ(res http.ResponseWriter, req *http.Request){
+func GetTxsHistoryServ(res http.ResponseWriter, req *http.Request) {
 
 	addrhex := req.URL.Query().Get("key")
-	addrb,err:=hex.DecodeString(addrhex)
-	if err!=nil{
+	addrb, err := hex.DecodeString(addrhex)
+	if err != nil {
 		return
 	}
-	addr:=string(addrb)
+	addr := string(addrb)
 
-	blob,err:=json.Marshal(GetTxsHistory(addr))
-	if err!=nil{
+	blob, err := json.Marshal(GetTxsHistory(addr))
+	if err != nil {
 		return
 	}
 	res.Header().Set("Content-Type", "application/json")

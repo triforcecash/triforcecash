@@ -14,7 +14,7 @@ func main() {
 	checkdepth := flag.Int("checkdepth", 1000, "For a stronger check, you should set 10000.")
 	seed := flag.String("seed", "", "Seed (password from your account")
 	lobby := flag.String("lobby", "185.234.15.72:8075", "Lobby node")
-	clientonly := flag.Bool("client", false, "You will not be a host")
+	fullnode := flag.Bool("fullnode", false, "Will be able fullnode features")
 	flag.Parse()
 
 	if *seed != "" {
@@ -23,10 +23,14 @@ func main() {
 		core.Mineblocks = true
 		core.Minecpu = true
 	}
+
 	core.Checkdepth = *checkdepth
 	core.Port = fmt.Sprint(":", *port)
 	core.PublicIp = *hostname
-	core.ClientOnly = *clientonly
+	if *hostname == "127.0.0.1" {
+		core.ClientOnly = true
+	}
+
 	core.Start()
 	core.AddHostAddr(*lobby)
 	defer core.Stop()

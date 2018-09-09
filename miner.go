@@ -33,7 +33,7 @@ func main() {
 
 	for {
 		select {
-		case nonce :=<- pushchan:
+		case nonce := <-pushchan:
 			Push(nonce)
 		}
 	}

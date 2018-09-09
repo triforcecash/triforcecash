@@ -66,9 +66,7 @@ func (bst BState) Search(addr string, j int) *State {
 	return nil
 }
 
-
-
-func (self *Header) IterHeaders(f func(head *Header))error{
+func (self *Header) IterHeaders(f func(head *Header)) error {
 	h := self
 	for c := 0; c < period; c++ {
 
@@ -87,52 +85,54 @@ func (self *Header) IterHeaders(f func(head *Header))error{
 	return nil
 }
 
-func (self *Tx) AddrMatch(addr string)bool{
-	for _,addr0:=range self.Addrs(){
-		if addr0==addr{
+func (self *Tx) AddrMatch(addr string) bool {
+	for _, addr0 := range self.Addrs() {
+		if addr0 == addr {
 			return true
 		}
 	}
 	return false
 }
 
-func (self TxsList) SearchByAddr(addr string)TxsList{
-	res:=TxsList{}
-	for _,tx:=range self{
-		if tx.AddrMatch(addr){
-			res=append(res,tx)
+func (self TxsList) SearchByAddr(addr string) TxsList {
+	res := TxsList{}
+	for _, tx := range self {
+		if tx.AddrMatch(addr) {
+			res = append(res, tx)
 		}
 	}
 	return res
 }
-type SearchTxsResultItem struct{
-	State *State
+
+type SearchTxsResultItem struct {
+	State   *State
 	TxsList TxsList
 }
-func (self *Header) SearchTxs(addr string)([]SearchTxsResultItem){
-	res:=[]SearchTxsResultItem{}
+
+func (self *Header) SearchTxs(addr string) []SearchTxsResultItem {
+	res := []SearchTxsResultItem{}
 	self.IterHeaders(
-		func (head *Header){
-			state,err:=GetState(head.State)
-			
-			if state==nil||err!=nil{
+		func(head *Header) {
+			state, err := GetState(head.State)
+
+			if state == nil || err != nil {
 				return
 			}
 
-			s:=state.Search(addr,state.Len())
-			
-			if s==nil{
+			s := state.Search(addr, state.Len())
+
+			if s == nil {
 				return
 			}
-			
-			txslist,_:=GetTxsList(head.Txs)
-			if txslist==nil{
-				return	
+
+			txslist, _ := GetTxsList(head.Txs)
+			if txslist == nil {
+				return
 			}
-			res=append(res,SearchTxsResultItem{
-				State:s,
-				TxsList: txslist.SearchByAddr(addr),		
+			res = append(res, SearchTxsResultItem{
+				State:   s,
+				TxsList: txslist.SearchByAddr(addr),
 			})
 		})
-	return res			
+	return res
 }

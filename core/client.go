@@ -24,7 +24,7 @@ func GetBalance(addr string) *State {
 	}
 }
 
-func GetTxsHistory(addr string)[]SearchTxsResultItem{
+func GetTxsHistory(addr string) []SearchTxsResultItem {
 	if Main != nil {
 		return Main.Higher.SearchTxs(addr)
 	}
