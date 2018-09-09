@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"github.com/triforcecash/triforcecash/core/sign"
 	"regexp"
+	"math/big"
 	"strings"
 )
 
@@ -90,4 +91,24 @@ func IsIgnored(addr string) bool {
 	_, ignored := HostsIgnore[addr]
 	hostsignoremux.Unlock()
 	return ignored
+}
+
+
+func CalculateTotalRate()*big.Int{
+	total:=new(big.Int).SetInt64(1)
+
+	MapHosts(
+		func(addr string,host *Host){
+			total.Add(total,coef(append(host.Pub,host.Nonce...)))
+		})
+	return total
+}
+
+func CalculateChanceToCreateBlock(){
+	total:=new(big.Float).SetInt(CalculateTotalRate())
+	MapHosts(
+		func(addr string, host *Host){
+			rate:=new(big.Float).SetInt(coef(append(host.Pub,host.Nonce...)))
+			host.Part,_=rate.Quo(rate,total).Float64()
+		})
 }

@@ -10,6 +10,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+
 )
 
 func Serve() {
@@ -98,6 +99,8 @@ func Network() {
 			for _, host := range NewHosts {
 				AddHost(host)
 			}
+			
+			CalculateChanceToCreateBlock()
 
 			time.Sleep(90 * time.Second)
 		}
@@ -339,3 +342,4 @@ func GetTxsHistoryServ(res http.ResponseWriter, req *http.Request) {
 
 	res.Write(blob)
 }
+

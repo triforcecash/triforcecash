@@ -133,6 +133,7 @@ type Host struct {
 	Pub   []byte
 	Nonce []byte
 	Karma int64
+	Part float64
 	Proof []byte
 }
 
