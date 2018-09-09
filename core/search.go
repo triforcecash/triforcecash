@@ -106,6 +106,7 @@ func (self TxsList) SearchByAddr(addr string) TxsList {
 
 type SearchTxsResultItem struct {
 	State   *State
+	Header *Header
 	TxsList TxsList
 }
 
@@ -124,13 +125,14 @@ func (self *Header) SearchTxs(addr string) []SearchTxsResultItem {
 			if s == nil {
 				return
 			}
-
+			s.LastBlockId=head.Id
 			txslist, _ := GetTxsList(head.Txs)
 			if txslist == nil {
 				return
 			}
 			res = append(res, SearchTxsResultItem{
 				State:   s,
+				Header: head.GetPrev(),
 				TxsList: txslist.SearchByAddr(addr),
 			})
 		})
