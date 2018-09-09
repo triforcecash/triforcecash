@@ -41,7 +41,10 @@ Enter the node ip address and port after the -host flag.
  ./miner -host 127.0.0.1:8075 -publickey a363f3675039caf20b8f805479051482e3c87b69d39b9b94f568778e8335a586 -threads 6
 ```
 ## API
-
+Run node or gui with flag -host local
+```bash
+./triforcecash_node_linux_amd64 -host local
+```
 ### Create Account
 
 #### Python2.7:
