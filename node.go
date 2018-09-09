@@ -23,7 +23,7 @@ func main() {
 		core.Mineblocks = true
 		core.Minecpu = true
 	}
-
+	core.FullNode=*fullnode
 	core.Checkdepth = *checkdepth
 	core.Port = fmt.Sprint(":", *port)
 	core.PublicIp = *hostname
