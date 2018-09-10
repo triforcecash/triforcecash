@@ -57,6 +57,7 @@ func UpdateHost(host *Host) {
 	if HostExist(host.Addr) {
 		hostsmux.Lock()
 		host.Karma = Hosts[host.Addr].Karma
+		host.Part = Hosts[host.Addr].Part
 		hostsmux.Unlock()
 	}
 	if !IsIgnored(host.Addr) && CorrectAddress(host.Addr) && host.Check() {
