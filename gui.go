@@ -11,7 +11,7 @@ import (
 
 var (
 	seed, pub, priv, addr []byte
-	balance, conf         uint64
+	balance       uint64
 )
 
 func main() {
@@ -25,9 +25,9 @@ func main() {
 	core.Checkdepth = *checkdepth
 	core.Port = fmt.Sprint(":", *port)
 	core.PublicIp = *hostname
-	if *hostname == "127.0.0.1" {
-		core.ClientOnly = true
-	}
+	core.Mineblocks=false
+	core.Minecpu=false
+	core.ClientOnly = true
 	core.AddHostAddr(*lobby)
 	core.Start()
 	defer core.Stop()
@@ -99,20 +99,10 @@ func main() {
 		hb1.Append(maxbut, false)
 		Send.Append(hb1, false)
 
-		Earn := ui.NewVerticalBox()
-		Earn.SetPadded(true)
-		Earn.Append(ui.NewHorizontalSeparator(), false)
-		Earn.Append(ui.NewLabel("Allow the client to create new blocks."), false)
-		createnewblocksbox := ui.NewCheckbox("Create new blocks")
-		usecpubox := ui.NewCheckbox("Use CPU")
-		usecpubox.Disable()
-		Earn.Append(createnewblocksbox, false)
-		Earn.Append(usecpubox, false)
-
 		tab := ui.NewTab()
 		tab.Append("Receive", Space(Receive))
 		tab.Append("Send", Space(Send))
-		tab.Append("Earn coins", Space(Earn))
+	
 
 		//	tab.Append("Network",Network)
 
@@ -136,10 +126,10 @@ func main() {
 				mystate := core.GetBalance(string(addr))
 				if mystate != nil {
 					balance = mystate.Balance
-					conf = mystate.LastBlockId
+					conf:= mystate.Confirm
 					ui.QueueMain(func() {
 						if core.Main != nil {
-							balancestatus.SetText(fmt.Sprintf("Balance: %d", balance) + subscriptnumber(core.Main.Higher.Id-conf))
+							balancestatus.SetText(fmt.Sprintf("Balance: %d", balance) + subscriptnumber(conf))
 						}
 					})
 				}
@@ -178,20 +168,6 @@ func main() {
 			amountbox.SetValue(int(balance))
 		})
 
-		createnewblocksbox.OnToggled(func(self *ui.Checkbox) {
-			core.Mineblocks = self.Checked()
-			if !self.Checked() {
-				usecpubox.Disable()
-				usecpubox.SetChecked(false)
-				core.Minecpu = false
-			} else {
-				usecpubox.Enable()
-			}
-		})
-
-		usecpubox.OnToggled(func(self *ui.Checkbox) {
-			core.Minecpu = self.Checked()
-		})
 		hide.OnClicked(func(self *ui.Button) {
 			if self.Text() == "Hide" {
 				self.SetText("Show")

@@ -123,7 +123,7 @@ type State struct {
 	Addr        []byte
 	Balance     uint64
 	Nonce       uint64
-	LastBlockId uint64
+	Confirm uint64
 }
 
 type Host struct {
