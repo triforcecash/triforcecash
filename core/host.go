@@ -41,7 +41,7 @@ func AddHost(host *Host) {
 	if !HostExist(host.Addr) && !IsIgnored(host.Addr) && CorrectAddress(host.Addr) && host.Check() {
 		host.Karma = 0
 		hostsmux.Lock()
-		Hosts[host.Addr] = host
+		Hosts[host.Addr] = &Host{host.Addr,host.Port,host.Prot}
 		hostsmux.Unlock()
 	}
 }
