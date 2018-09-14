@@ -45,6 +45,7 @@ You can run an unlimited number of miners on different computers that will calcu
 ```bash
 wget https://github.com/triforcecash/triforcecash/releases/download/0.7/triforcecash_cpu_miner_linux_amd64
 chmod +x triforcecash_cpu_miner_linux_amd64
+```
 ### Run
 Copy public key from Receive tab in GUI Wallet.
 Enter the node ip address and port after the -host flag.
