@@ -52,22 +52,19 @@ func Network() {
 	go func() {
 		for {
 
-			var buf bytes.Buffer
-			if !ClientOnly {
-				myhost := &Host{
+			
+			myhost := &Host{
 					Addr:  PublicIp,
 					Port:  Port,
 					Prot:  protocol,
 					Pub:   Pub,
 					Nonce: Nonce,
 				}
-				myhost.Sign()
+			myhost.Sign()
+			hostinfo, _ := json.Marshal(myhost)
+			
 
-				b, _ := json.Marshal(myhost)
-
-				buf.Write(b)
-
-			}
+			
 
 			var NewHosts = map[string]*Host{}
 
@@ -79,7 +76,8 @@ func Network() {
 				if host.Karma > (20) {
 					host.Karma = 20
 				}
-
+				var buf bytes.Buffer
+				buf.Write(hostinfo)
 				res, err := http.Post(url+"/api/pushhost", "application/json", &buf)
 				if err != nil {
 					host.Karma -= 1
