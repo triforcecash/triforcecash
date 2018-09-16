@@ -200,9 +200,8 @@ func PostTx(res http.ResponseWriter, req *http.Request) {
 }
 
 func PushTx(tx *Tx) {
-	var buf bytes.Buffer
-	buf.Write(tx.Encode())
-
+	
+	encodedtx:=tx.Encode()
 	if tx.Check() {
 		poolmux.Lock()
 		TxsPool = append(TxsPool, tx)
@@ -210,6 +209,8 @@ func PushTx(tx *Tx) {
 	}
 
 	MapHosts(func(url string, h *Host) {
+		var buf bytes.Buffer
+		buf.Write(encodedtx)
 		http.Post(url+apipushtx, "application/octet-stream", &buf)
 	})
 
