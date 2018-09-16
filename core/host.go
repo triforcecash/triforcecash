@@ -41,7 +41,7 @@ func AddHost(host *Host) {
 	if !HostExist(host.Addr) && !IsIgnored(host.Addr) && CorrectAddress(host.Addr) && host.Check() {
 		host.Karma = 0
 		hostsmux.Lock()
-		Hosts[host.Addr] = &Host{host.Addr,host.Port,host.Prot}
+		Hosts[host.Addr] = &Host{Addr:host.Addr,Port:host.Port,Prot:host.Prot}
 		hostsmux.Unlock()
 	}
 }
@@ -100,6 +100,9 @@ func CalculateTotalRate()*big.Int{
 
 	MapHosts(
 		func(addr string,host *Host){
+			if PublicKeyIsBanned(host.Pub){
+				return
+			}
 			total.Add(total,coef(append(host.Pub,host.Nonce...)))
 		})
 	return total
@@ -109,6 +112,10 @@ func CalculateChanceToCreateBlock(){
 	total:=new(big.Float).SetInt(CalculateTotalRate())
 	MapHosts(
 		func(addr string, host *Host){
+			if PublicKeyIsBanned(host.Pub){
+				host.Part=0
+				return
+			}
 			rate:=new(big.Float).SetInt(coef(append(host.Pub,host.Nonce...)))
 			host.Part,_=rate.Quo(rate,total).Float64()
 		})

@@ -241,6 +241,13 @@ func (self *Header) PublicKeysAreBanned() bool {
 	return false
 }
 
+func PublicKeyIsBanned(pub []byte)bool{
+	if Get(banpubprfx, pub) != nil {
+		return true
+	}
+	return false
+}
+
 func (self *Header) SignTokenIsUsed() bool {
 	tb := Get(signtokenprfx, self.SignKey())
 	return tb != nil

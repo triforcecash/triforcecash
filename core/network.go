@@ -191,7 +191,7 @@ func PostTx(res http.ResponseWriter, req *http.Request) {
 	b, err := ioutil.ReadAll(req.Body)
 	req.Body.Close()
 	if err != nil {
-		return
+		log.Println(err)
 	}
 	tx := DecodeTx(b)
 	if tx.Check() {
