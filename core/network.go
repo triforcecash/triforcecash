@@ -64,8 +64,6 @@ func Network() {
 			hostinfo, _ := json.Marshal(myhost)
 			
 
-			
-
 			var NewHosts = map[string]*Host{}
 
 			MapHosts(func(url string, host *Host) {
@@ -78,7 +76,7 @@ func Network() {
 				}
 				var buf bytes.Buffer
 				buf.Write(hostinfo)
-				res, err := http.Post(url+"/api/pushhost", "application/json", &buf)
+				res, err := http.Post(url+"/api/pushhost", "application/octet-stream", &buf)
 				if err != nil {
 					host.Karma -= 1
 					return
@@ -115,18 +113,22 @@ func Network() {
 }
 
 func PostHost(res http.ResponseWriter, req *http.Request) {
-	hostsmux.Lock()
-	bh, _ := json.Marshal(Hosts)
-	hostsmux.Unlock()
-	res.Write(bh)
+
 
 	b, _ := ioutil.ReadAll(req.Body)
 	req.Body.Close()
 
 	host := &Host{}
 	json.Unmarshal(b, host)
+	
 	host.Addr = strings.Split(req.RemoteAddr, ":")[0]
+	
 	UpdateHost(host)
+
+	hostsmux.Lock()
+	bh, _ := json.Marshal(Hosts)
+	hostsmux.Unlock()
+	res.Write(bh)
 }
 
 func DBServer(res http.ResponseWriter, req *http.Request) {
@@ -189,7 +191,7 @@ func PostTx(res http.ResponseWriter, req *http.Request) {
 	b, err := ioutil.ReadAll(req.Body)
 	req.Body.Close()
 	if err != nil {
-		log.Println(err)
+		return
 	}
 	tx := DecodeTx(b)
 	if tx.Check() {
