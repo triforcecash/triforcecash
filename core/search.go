@@ -39,7 +39,7 @@ func (self *Header) Search(res, req StateMap, d int) error {
 		for addr, _ := range req {
 			s := st.Search(addr, l)
 			if s != nil {
-				s.Confirm = self.Id-h.Id
+				s.Confirm = self.Id - h.Id
 				res[addr] = s
 				delete(req, addr)
 			}
@@ -106,7 +106,7 @@ func (self TxsList) SearchByAddr(addr string) TxsList {
 
 type SearchTxsResultItem struct {
 	State   *State
-	Header *Header
+	Header  *Header
 	TxsList TxsList
 }
 
@@ -125,20 +125,20 @@ func (self *Header) SearchTxs(addr string) []SearchTxsResultItem {
 			if s == nil {
 				return
 			}
-			s.Confirm=self.Id-head.Id
+			s.Confirm = self.Id - head.Id
 			txslist, _ := GetTxsList(head.Txs)
 			if txslist == nil {
 				return
 			}
-			PrevHeaderReward:=head.GetPrev()
+			PrevHeaderReward := head.GetPrev()
 
-			if !(Addr(PrevHeaderReward.Pubs[0])==addr||Addr(PrevHeaderReward.Pubs[1])==addr){
-				PrevHeaderReward=nil
+			if !(Addr(PrevHeaderReward.Pubs[0]) == addr || Addr(PrevHeaderReward.Pubs[1]) == addr) {
+				PrevHeaderReward = nil
 			}
 
 			res = append(res, SearchTxsResultItem{
 				State:   s,
-				Header: PrevHeaderReward,
+				Header:  PrevHeaderReward,
 				TxsList: txslist.SearchByAddr(addr),
 			})
 		})

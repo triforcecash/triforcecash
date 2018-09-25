@@ -10,7 +10,6 @@ import (
 	"strings"
 	"sync"
 	"time"
-
 )
 
 func Serve() {
@@ -52,17 +51,15 @@ func Network() {
 	go func() {
 		for {
 
-			
 			myhost := &Host{
-					Addr:  PublicIp,
-					Port:  Port,
-					Prot:  protocol,
-					Pub:   Pub,
-					Nonce: Nonce,
-				}
+				Addr:  PublicIp,
+				Port:  Port,
+				Prot:  protocol,
+				Pub:   Pub,
+				Nonce: Nonce,
+			}
 			myhost.Sign()
 			hostinfo, _ := json.Marshal(myhost)
-			
 
 			var NewHosts = map[string]*Host{}
 
@@ -95,7 +92,7 @@ func Network() {
 			for _, host := range NewHosts {
 				AddHost(host)
 			}
-			
+
 			CalculateChanceToCreateBlock()
 
 			time.Sleep(90 * time.Second)
@@ -114,15 +111,14 @@ func Network() {
 
 func PostHost(res http.ResponseWriter, req *http.Request) {
 
-
 	b, _ := ioutil.ReadAll(req.Body)
 	req.Body.Close()
 
 	host := &Host{}
 	json.Unmarshal(b, host)
-	
+
 	host.Addr = strings.Split(req.RemoteAddr, ":")[0]
-	
+
 	UpdateHost(host)
 
 	hostsmux.Lock()
@@ -202,8 +198,8 @@ func PostTx(res http.ResponseWriter, req *http.Request) {
 }
 
 func PushTx(tx *Tx) {
-	
-	encodedtx:=tx.Encode()
+
+	encodedtx := tx.Encode()
 	if tx.Check() {
 		poolmux.Lock()
 		TxsPool = append(TxsPool, tx)
@@ -343,4 +339,3 @@ func GetTxsHistoryServ(res http.ResponseWriter, req *http.Request) {
 
 	res.Write(blob)
 }
-

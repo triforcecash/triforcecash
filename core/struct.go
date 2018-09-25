@@ -67,8 +67,8 @@ var (
 	errheader = errors.New("Header signs is invalid")
 	errblock  = errors.New("Block is invalid")
 
-	Difficult    = new(big.Int).SetInt64(1000)
-	MinDifficult = new(big.Int).SetInt64(1000)
+	Difficulty    = new(big.Int).SetInt64(1000)
+	MinDifficulty = new(big.Int).SetInt64(1000)
 
 	Nonce   []byte
 	Priv    []byte
@@ -81,9 +81,8 @@ var (
 type Chain struct {
 	Higher *Header
 	Avr    *big.Int
+	L      uint64
 	Valid  bool
-	Active bool
-	Mux    sync.Mutex
 }
 
 type Block struct {
@@ -120,9 +119,9 @@ type Tx struct {
 }
 
 type State struct {
-	Addr        []byte
-	Balance     uint64
-	Nonce       uint64
+	Addr    []byte
+	Balance uint64
+	Nonce   uint64
 	Confirm uint64
 }
 
@@ -133,7 +132,7 @@ type Host struct {
 	Pub   []byte
 	Nonce []byte
 	Karma int64
-	Part float64
+	Part  float64
 	Proof []byte
 }
 

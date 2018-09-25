@@ -241,7 +241,7 @@ func (self *Header) PublicKeysAreBanned() bool {
 	return false
 }
 
-func PublicKeyIsBanned(pub []byte)bool{
+func PublicKeyIsBanned(pub []byte) bool {
 	if Get(banpubprfx, pub) != nil {
 		return true
 	}

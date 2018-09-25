@@ -159,7 +159,7 @@ func (self *Block) Mine() {
 	b := self.Fork()
 	b.Head.Pubs = [][]byte{Pub, Pub}
 	b.Head.Nonces = [][]byte{Nonce, Nonce}
-	if b.Head.Rate().Cmp(Difficult) == 1 {
+	if b.Head.Rate().Cmp(Difficulty) == 1 {
 
 		if b.Head.Sign(Priv) {
 			b.Head.Cache(true, true, 0)
@@ -176,7 +176,7 @@ func (self *Block) Mine() {
 		b := self.Fork()
 		b.Head.Pubs = [][]byte{Pub, host.Pub}
 		b.Head.Nonces = [][]byte{Nonce, host.Nonce}
-		if b.Head.Rate().Cmp(Difficult) == 1 && b.Head.Sign(Priv) {
+		if b.Head.Rate().Cmp(Difficulty) == 1 && b.Head.Sign(Priv) {
 			var buf bytes.Buffer
 			buf.Write(b.Encode())
 			go http.Post(url+mineapi, "application/octet-stream", &buf)
@@ -193,7 +193,7 @@ func MineServ(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	blk := DecodeBlock(blb)
-	if blk.Head.Rate().Cmp(Difficult) == 1 && Main != nil && Main.Higher.Id <= blk.Head.Id && blk.Head.Id <= CurrentId() {
+	if blk.Head.Rate().Cmp(Difficulty) == 1 && Main != nil && Main.Higher.Id <= blk.Head.Id && blk.Head.Id <= CurrentId() {
 		if blk.Head.Sign(Priv) {
 			blk.Head.Txs = Hash(blk.Txs.Encode())
 			if blk.Head.Check() {

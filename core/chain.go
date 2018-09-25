@@ -11,9 +11,10 @@ import (
 var b100 = new(big.Int).SetInt64(100)
 var b99 = new(big.Int).SetInt64(99)
 var b101 = new(big.Int).SetInt64(101)
+var zero = big.NewInt(0)
 
 func NewChain(h *Header) {
-	if Difficult.Cmp(h.Rate()) == 1 {
+	if Difficulty.Cmp(h.Rate()) == 1 {
 		return
 	}
 	h.CheckFraud()
@@ -36,53 +37,54 @@ func NewChain(h *Header) {
 	if !ok {
 		c := &Chain{
 			Higher: h,
-			Active: true,
+			Avr:    big.NewInt(0),
 			Valid:  true,
-			Avr:    new(big.Int),
 		}
 		Chains[key] = c
-		go c.Start()
+		go c.Rate(CurrentId())
 	}
 }
 
-func (self *Chain) Start() {
-	self.Mux.Lock()
-	self.Active = true
-	self.Mux.Unlock()
-	defer func() {
-		self.Mux.Lock()
-		self.Active = false
-		self.Mux.Unlock()
-	}()
+func (self *Chain) Rate(currentid uint64) *big.Int {
 
+	if currentid < self.Higher.Id {
+		return big.NewInt(0)
+	}
+
+	if self.L == currentid {
+		return self.Avr
+	}
+
+	self.L = currentid
+
+	penalty := currentid - self.Higher.Id
 	h := self.Higher
+	num := big.NewInt(int64(penalty))
+	sum := big.NewInt(0)
+	depth := Checkdepth - int(penalty)
 
-	num := new(big.Int).SetInt64(0)
-	sum := new(big.Int).SetInt64(0)
+	if depth <= 0 {
+		return big.NewInt(0)
+	}
 
-	for d := 0; d < Checkdepth; d++ {
+	for d := 0; d < depth; d++ {
 
 		num.Add(num, one)
 		sum.Add(sum, h.Rate())
-
-		self.Mux.Lock()
-		self.Avr.Div(sum, num)
-		self.Mux.Unlock()
-
 		if h.Id <= 0 {
-			return
+			self.Avr.Div(sum, num)
+			return self.Avr
 		}
 
 		h = h.GetPrev()
 
 		if h == nil {
-			self.Mux.Lock()
-			self.Valid = false
-			self.Mux.Unlock()
-			return
+			return big.NewInt(0)
 		}
 
 	}
+	self.Avr.Div(sum, num)
+	return self.Avr
 }
 
 func (self *Chain) StartFullCheck() {
@@ -93,10 +95,7 @@ func (self *Chain) StartFullCheck() {
 		}
 
 		if !h.FullCheck() {
-			self.Mux.Lock()
 			self.Valid = false
-			self.Avr.SetInt64(0)
-			self.Mux.Unlock()
 			return
 		}
 		if h.Id <= 0 {
@@ -106,10 +105,7 @@ func (self *Chain) StartFullCheck() {
 		h = h.GetPrev()
 
 		if h == nil {
-			self.Mux.Lock()
 			self.Valid = false
-			self.Avr.SetInt64(0)
-			self.Mux.Unlock()
 			return
 		}
 
@@ -169,47 +165,36 @@ func Update(curid uint64) {
 	chainsmux.Lock()
 	for key, chain := range Chains {
 		chainsmux.Unlock()
-		chain.Mux.Lock()
 
-		if chain.Valid && (mx == nil || chain.Avr.Cmp(mx.Avr) == 1 && chain.Higher.Id == mx.Higher.Id || chain.Higher.Id > mx.Higher.Id && chain.Higher.Id <= curid) {
+		if chain.Valid && (mx == nil || chain.Rate(curid).Cmp(mx.Rate(curid)) == 1) {
 			mx = chain
 		}
 
-		if mn == nil || chain.Avr.Cmp(mn.Avr) == -1 && chain.Higher.Id == mn.Higher.Id || chain.Higher.Id < mn.Higher.Id && mn.Higher.Id <= curid {
+		if mn == nil || chain.Rate(curid).Cmp(mn.Rate(curid)) == -1 {
 			mn = chain
 			mnk = key
 		}
 
-		chain.Mux.Unlock()
 		chainsmux.Lock()
 	}
 	chainsmux.Unlock()
 
-	if len(Chains) > 100 {
+	if len(Chains) > 200 {
 		delete(Chains, mnk)
-		Difficult.Mul(Difficult, b101)
-		Difficult.Div(Difficult, b100)
+		IncreaseDifficulty()
 	}
 
 	if len(Chains) < 100 {
-		Difficult.Mul(Difficult, b99)
-		Difficult.Div(Difficult, b100)
-		if Difficult.Cmp(MinDifficult) == -1 {
-			Difficult.Set(MinDifficult)
-		}
+		DecreaseDifficulty()
 	}
 
 	if Main != nil && Main.Higher.Id < curid {
-		Difficult.Mul(Difficult, b99)
-		Difficult.Div(Difficult, b100)
-		if Difficult.Cmp(MinDifficult) == -1 {
-			Difficult.Set(MinDifficult)
-		}
+		DecreaseDifficulty()
 	}
 
 	if Main != mx && mx != nil {
 		Main = mx
-		Main.StartFullCheck()
+		go Main.StartFullCheck()
 	}
 	if Main != mx && mx == nil {
 		Main = mx
@@ -227,4 +212,17 @@ func Updater() {
 			time.Sleep(250 * time.Millisecond)
 		}
 	}()
+}
+
+func DecreaseDifficulty() {
+	Difficulty.Mul(Difficulty, b99)
+	Difficulty.Div(Difficulty, b100)
+	if Difficulty.Cmp(MinDifficulty) == -1 {
+		Difficulty.Set(MinDifficulty)
+	}
+}
+
+func IncreaseDifficulty() {
+	Difficulty.Mul(Difficulty, b101)
+	Difficulty.Div(Difficulty, b100)
 }

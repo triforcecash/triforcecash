@@ -11,7 +11,7 @@ import (
 
 var (
 	seed, pub, priv, addr []byte
-	balance       uint64
+	balance               uint64
 )
 
 func main() {
@@ -25,8 +25,8 @@ func main() {
 	core.Checkdepth = *checkdepth
 	core.Port = fmt.Sprint(":", *port)
 	core.PublicIp = *hostname
-	core.Mineblocks=false
-	core.Minecpu=false
+	core.Mineblocks = false
+	core.Minecpu = false
 	core.ClientOnly = true
 	core.AddHostAddr(*lobby)
 	core.Start()
@@ -102,7 +102,6 @@ func main() {
 		tab := ui.NewTab()
 		tab.Append("Receive", Space(Receive))
 		tab.Append("Send", Space(Send))
-	
 
 		//	tab.Append("Network",Network)
 
@@ -126,7 +125,7 @@ func main() {
 				mystate := core.GetBalance(string(addr))
 				if mystate != nil {
 					balance = mystate.Balance
-					conf:= mystate.Confirm
+					conf := mystate.Confirm
 					ui.QueueMain(func() {
 						if core.Main != nil {
 							balancestatus.SetText(fmt.Sprintf("Balance: %d", balance) + subscriptnumber(conf))

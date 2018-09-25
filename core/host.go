@@ -3,8 +3,8 @@ package core
 import (
 	"bytes"
 	"github.com/triforcecash/triforcecash/core/sign"
-	"regexp"
 	"math/big"
+	"regexp"
 	"strings"
 )
 
@@ -41,7 +41,7 @@ func AddHost(host *Host) {
 	if !HostExist(host.Addr) && !IsIgnored(host.Addr) && CorrectAddress(host.Addr) && host.Check() {
 		host.Karma = 0
 		hostsmux.Lock()
-		Hosts[host.Addr] = &Host{Addr:host.Addr,Port:host.Port,Prot:host.Prot}
+		Hosts[host.Addr] = &Host{Addr: host.Addr, Port: host.Port, Prot: host.Prot}
 		hostsmux.Unlock()
 	}
 }
@@ -94,29 +94,28 @@ func IsIgnored(addr string) bool {
 	return ignored
 }
 
-
-func CalculateTotalRate()*big.Int{
-	total:=new(big.Int).SetInt64(1)
+func CalculateTotalRate() *big.Int {
+	total := new(big.Int).SetInt64(1)
 
 	MapHosts(
-		func(addr string,host *Host){
-			if PublicKeyIsBanned(host.Pub){
+		func(addr string, host *Host) {
+			if PublicKeyIsBanned(host.Pub) {
 				return
 			}
-			total.Add(total,coef(append(host.Pub,host.Nonce...)))
+			total.Add(total, coef(append(host.Pub, host.Nonce...)))
 		})
 	return total
 }
 
-func CalculateChanceToCreateBlock(){
-	total:=new(big.Float).SetInt(CalculateTotalRate())
+func CalculateChanceToCreateBlock() {
+	total := new(big.Float).SetInt(CalculateTotalRate())
 	MapHosts(
-		func(addr string, host *Host){
-			if PublicKeyIsBanned(host.Pub){
-				host.Part=0
+		func(addr string, host *Host) {
+			if PublicKeyIsBanned(host.Pub) {
+				host.Part = 0
 				return
 			}
-			rate:=new(big.Float).SetInt(coef(append(host.Pub,host.Nonce...)))
-			host.Part,_=rate.Quo(rate,total).Float64()
+			rate := new(big.Float).SetInt(coef(append(host.Pub, host.Nonce...)))
+			host.Part, _ = rate.Quo(rate, total).Float64()
 		})
 }
