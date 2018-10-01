@@ -28,7 +28,7 @@ func Serve() {
 	http.HandleFunc("/api/genaccount", GenAccountServ)
 	http.HandleFunc("/api/updatenonce", UpdateNonce)
 	http.HandleFunc("/api/updatenoncehex", UpdateNonceHex)
-	http.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {})
+	http.HandleFunc("/", ExplorerServ)
 
 	http.ListenAndServe(Port, nil)
 }
@@ -116,7 +116,6 @@ func PostHost(res http.ResponseWriter, req *http.Request) {
 
 	host := &Host{}
 	json.Unmarshal(b, host)
-
 	host.Addr = strings.Split(req.RemoteAddr, ":")[0]
 
 	UpdateHost(host)

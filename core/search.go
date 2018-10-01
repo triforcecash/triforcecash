@@ -130,9 +130,11 @@ func (self *Header) SearchTxs(addr string) []SearchTxsResultItem {
 			if txslist == nil {
 				return
 			}
+
 			PrevHeaderReward := head.GetPrev()
 
-			if !(Addr(PrevHeaderReward.Pubs[0]) == addr || Addr(PrevHeaderReward.Pubs[1]) == addr) {
+
+			if PrevHeaderReward!=nil&&(!(Addr(PrevHeaderReward.Pubs[0]) == addr || Addr(PrevHeaderReward.Pubs[1]) == addr)) {
 				PrevHeaderReward = nil
 			}
 
