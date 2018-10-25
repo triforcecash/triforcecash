@@ -7,129 +7,35 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
-	"strings"
 	"sync"
-	"time"
 )
 
 func Serve() {
-	if FullNode {
+	if PortHTTP != "" {
 		http.HandleFunc("/api/txshistory", GetTxsHistoryServ)
+		http.HandleFunc("/api/pushtx", PostTx)
+		http.HandleFunc("/api/main", MainChainJson)
+		http.HandleFunc("/api/state", StateJson)
+		http.HandleFunc("/api/candidates", CandidatesJson)
+		http.HandleFunc("/api/txspool", TxsJson)
+		http.HandleFunc("/api/keys", KeysJson)
+		http.HandleFunc("/api/peers", PeersJson)
+		http.HandleFunc("/api/send", SendServ)
+		http.HandleFunc("/api/genaccount", GenAccountServ)
+		http.HandleFunc("/api/updatenonce", UpdateNonce)
+		http.HandleFunc("/api/updatenoncehex", UpdateNonceHex)
+		http.HandleFunc("/", ExplorerServ)
+		go http.ListenAndServe(PortHTTP, nil)
 	}
-	http.HandleFunc("/api/db", DBServer)
-	http.HandleFunc("/api/mine", MineServ)
-	http.HandleFunc("/api/pushtx", PostTx)
-	http.HandleFunc("/api/main", MainChain)
-	http.HandleFunc("/api/mainjson", MainChainJson)
-	http.HandleFunc("/api/statejson", StateJson)
-	http.HandleFunc("/api/pushhost", PostHost)
-	http.HandleFunc("/api/hosts", HostsServ)
-	http.HandleFunc("/api/send", SendServ)
-	http.HandleFunc("/api/genaccount", GenAccountServ)
-	http.HandleFunc("/api/updatenonce", UpdateNonce)
-	http.HandleFunc("/api/updatenoncehex", UpdateNonceHex)
-	http.HandleFunc("/", ExplorerServ)
-
-	http.ListenAndServe(Port, nil)
-}
-
-func HostsServ(res http.ResponseWriter, req *http.Request) {
-	res.Header().Set("Content-Type", "application/json")
-	hostsmux.Lock()
-	b, _ := json.Marshal(Hosts)
-	hostsmux.Unlock()
-
-	res.Write(b)
-}
-
-func Network() {
-
-	if !ClientOnly {
-		go Serve()
-	}
-
-	go func() {
-		for {
-
-			myhost := &Host{
-				Addr:  PublicIp,
-				Port:  Port,
-				Prot:  protocol,
-				Pub:   Pub,
-				Nonce: Nonce,
-			}
-			myhost.Sign()
-			hostinfo, _ := json.Marshal(myhost)
-
-			var NewHosts = map[string]*Host{}
-
-			MapHosts(func(url string, host *Host) {
-				if host.Karma < (-20) {
-					IgnoreAddress(host.Addr)
-					return
-				}
-				if host.Karma > (20) {
-					host.Karma = 20
-				}
-				var buf bytes.Buffer
-				buf.Write(hostinfo)
-				res, err := http.Post(url+"/api/pushhost", "application/octet-stream", &buf)
-				if err != nil {
-					host.Karma -= 1
-					return
-				}
-
-				resblob, _ := ioutil.ReadAll(res.Body)
-				res.Body.Close()
-
-				var newhosts map[string]*Host
-				json.Unmarshal(resblob, &newhosts)
-				for k, v := range newhosts {
-					NewHosts[k] = v
-				}
-			})
-
-			for _, host := range NewHosts {
-				AddHost(host)
-			}
-
-			CalculateChanceToCreateBlock()
-
-			time.Sleep(90 * time.Second)
-		}
-	}()
-
-	go func() {
-		for {
-			time.Sleep(1800 * time.Second)
-			hostsignoremux.Lock()
-			HostsIgnore = map[string]int{"127.0.0.1": 0, "0.0.0.0": 0, "255.255.255.255": 0}
-			hostsignoremux.Unlock()
-		}
-	}()
-}
-
-func PostHost(res http.ResponseWriter, req *http.Request) {
-
-	b, _ := ioutil.ReadAll(req.Body)
-	req.Body.Close()
-
-	host := &Host{}
-	json.Unmarshal(b, host)
-	host.Addr = strings.Split(req.RemoteAddr, ":")[0]
-
-	UpdateHost(host)
-
-	hostsmux.Lock()
-	bh, _ := json.Marshal(Hosts)
-	hostsmux.Unlock()
-	res.Write(bh)
+	Peers.Connect(Lobby)
+	go Peers.ConnectToPeers()
+	ListenTCP()
 }
 
 func DBServer(res http.ResponseWriter, req *http.Request) {
 	hexkey := req.URL.Query().Get("key")
 	key, _ := hex.DecodeString(hexkey)
-	data := Get(key, []byte{})
+	data := Get("", key)
 	res.Write(data)
 }
 
@@ -149,37 +55,38 @@ func MainChainJson(res http.ResponseWriter, req *http.Request) {
 	}
 }
 
+func CandidatesJson(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "application/json")
+	b, _ := json.Marshal(Candidates)
+	res.Write(b)
+}
+
+func TxsJson(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "application/json")
+	b, _ := json.Marshal(Txs)
+	res.Write(b)
+}
+
+func PeersJson(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "application/json")
+	p := *Peers
+	b, err := json.Marshal(p)
+	log.Println(err)
+	res.Write(b)
+
+}
+
+func KeysJson(res http.ResponseWriter, req *http.Request) {
+	res.Header().Set("Content-Type", "application/json")
+	b, _ := json.Marshal(Keys)
+	res.Write(b)
+}
+
 func MainChain(res http.ResponseWriter, req *http.Request) {
 	if Main != nil {
 		res.Header().Set("Content-Type", "application/octet-stream")
 		res.Write(Main.Higher.Encode())
 	}
-}
-
-func NetGet(prfx, key0 []byte, hand func(b, k []byte) bool) []byte {
-	var key1 []byte
-	key1 = append(key1, prfx...)
-	key1 = append(key1, key0...)
-	hexkey := hex.EncodeToString(key1)
-	hostsmux.Lock()
-	for _, host := range Hosts {
-		hostsmux.Unlock()
-		resp, err := http.Get(host.Prot + host.Addr + host.Port + dbapi + hexkey)
-		if resp != nil && err == nil {
-			respblob, _ := ioutil.ReadAll(resp.Body)
-			resp.Body.Close()
-			if hand(respblob, key0) {
-				host.Karma += 1
-				return respblob
-			}
-		} else {
-			host.Karma -= 1
-			log.Println(err)
-		}
-		hostsmux.Lock()
-	}
-	hostsmux.Unlock()
-	return nil
 }
 
 func PostTx(res http.ResponseWriter, req *http.Request) {
@@ -189,38 +96,18 @@ func PostTx(res http.ResponseWriter, req *http.Request) {
 		return
 	}
 	tx := DecodeTx(b)
-	if tx.Check() {
-		poolmux.Lock()
-		TxsPool = append(TxsPool, tx)
-		poolmux.Unlock()
-	}
+	Txs.Add(tx)
+
 }
 
 func PushTx(tx *Tx) {
 
 	encodedtx := tx.Encode()
-	if tx.Check() {
-		poolmux.Lock()
-		TxsPool = append(TxsPool, tx)
-		poolmux.Unlock()
-	}
+	Txs.Add(tx)
 
-	MapHosts(func(url string, h *Host) {
-		var buf bytes.Buffer
-		buf.Write(encodedtx)
-		http.Post(url+apipushtx, "application/octet-stream", &buf)
-	})
-
-}
-
-func MapHosts(f func(url string, h *Host)) {
-	hostsmux.Lock()
-	for _, host := range Hosts {
-		hostsmux.Unlock()
-		f(host.Prot+host.Addr+host.Port, host)
-		hostsmux.Lock()
-	}
-	hostsmux.Unlock()
+	var buf bytes.Buffer
+	buf.Write(encodedtx)
+	http.Post(Lobby+apipushtx, "application/octet-stream", &buf)
 }
 
 func SendServ(res http.ResponseWriter, req *http.Request) {

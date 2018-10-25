@@ -9,12 +9,10 @@ import (
 
 func main() {
 
-	port := flag.Int("port", 8075, "Port")
-	hostname := flag.String("host", "127.0.0.1", "Public ip")
-	checkdepth := flag.Int("checkdepth", 1000, "For a stronger check, you should set 10000.")
+	port := flag.Int("port", 0, "Http server port")
+	checkdepth := flag.Int("checkdepth", 0, "For a stronger check, you should set 10000.")
 	seed := flag.String("seed", "", "Seed (password from your account")
-	lobby := flag.String("lobby", "185.234.15.72:8075", "Lobby node")
-	fullnode := flag.Bool("fullnode", false, "Will be able fullnode features")
+	lobby := flag.String("lobby", "", "Lobby node")
 	flag.Parse()
 
 	if *seed != "" {
@@ -23,16 +21,21 @@ func main() {
 		core.Mineblocks = true
 		core.Minecpu = true
 	}
-	core.FullNode = *fullnode
-	core.Checkdepth = *checkdepth
-	core.Port = fmt.Sprint(":", *port)
-	core.PublicIp = *hostname
-	if *hostname == "127.0.0.1" {
-		core.ClientOnly = true
+
+	if *checkdepth != 0 {
+		core.Checkdepth = *checkdepth
+	}
+
+	if *port != 0 {
+		core.PortHTTP = fmt.Sprint(":", *port)
+
+	}
+
+	if *lobby != "" {
+		core.Lobby = *lobby
 	}
 
 	core.Start()
-	core.AddHostAddr(*lobby)
 	defer core.Stop()
 	fmt.Println("Press Сtr+C to stop")
 

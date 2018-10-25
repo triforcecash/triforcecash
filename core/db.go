@@ -14,9 +14,9 @@ func DBClose() {
 	LvlDB.Close()
 }
 
-func Get(prfx, key []byte) []byte {
+func Get(prfx string, key []byte) []byte {
 
-	key1 := append(prfx, key...)
+	key1 := append([]byte(prfx), key...)
 	data, err := LvlDB.Get(key1, nil)
 	if err != nil {
 		return nil
@@ -24,7 +24,7 @@ func Get(prfx, key []byte) []byte {
 	return data
 }
 
-func Put(prfx, key, data []byte) {
-	key1 := append(prfx, key...)
+func Put(prfx string, key, data []byte) {
+	key1 := append([]byte(prfx), key...)
 	LvlDB.Put(key1, data, nil)
 }

@@ -1,52 +1,102 @@
 package core
 
 import (
-	"io/ioutil"
-	"log"
 	"math/big"
-	"net/http"
+	"sync"
 	"time"
 )
 
-var b100 = new(big.Int).SetInt64(100)
-var b99 = new(big.Int).SetInt64(99)
-var b101 = new(big.Int).SetInt64(101)
-var zero = big.NewInt(0)
+type ChainsPool struct {
+	Chains     map[string]*Chain
+	Mux        sync.Mutex
+	Difficulty *big.Int
+	Main       *Chain
+}
 
-func NewChain(h *Header) {
-	if Difficulty.Cmp(h.Rate()) == 1 {
+func (self *ChainsPool) IncreaseDifficulty() {
+	self.Difficulty.Mul(self.Difficulty, big.NewInt(101))
+	self.Difficulty.Div(self.Difficulty, big.NewInt(100))
+}
+
+func (self *ChainsPool) DecreaseDifficulty() {
+	self.Difficulty.Mul(self.Difficulty, big.NewInt(99))
+	self.Difficulty.Div(self.Difficulty, big.NewInt(100))
+	if self.Difficulty.Cmp(big.NewInt(1000)) == -1 {
+		self.Difficulty.SetInt64(1000)
+	}
+}
+
+func (self *ChainsPool) Add(h *Header) {
+
+	if !h.Check() {
+		return
+	}
+
+	if h.Rate().Cmp(Candidates.Difficulty) == -1 {
 		return
 	}
 	h.CheckFraud()
-
 	if h.PublicKeysAreBanned() {
 		return
 	}
-
 	if CurrentId() < h.Id {
 		return
 	}
-
 	key := string(h.Hash())
-
-	chainsmux.Lock()
-	defer chainsmux.Unlock()
-
-	_, ok := Chains[key]
-
-	if !ok {
+	self.Mux.Lock()
+	defer self.Mux.Unlock()
+	if _, ok := self.Chains[key]; !ok {
 		c := &Chain{
 			Higher: h,
 			Avr:    big.NewInt(0),
 			Valid:  true,
 		}
-		Chains[key] = c
-		go c.Rate(CurrentId())
+		self.Chains[key] = c
+		go c.Rate()
+		h.Cache(h.Check(), false, 0)
 	}
 }
 
-func (self *Chain) Rate(currentid uint64) *big.Int {
+func (self *ChainsPool) DeleteLowRate() {
+	self.Mux.Lock()
+	defer self.Mux.Unlock()
+	for k, v := range self.Chains {
+		if v.Rate().Cmp(self.Difficulty) == -1 {
+			delete(self.Chains, k)
+		}
+	}
+}
 
+func (self *ChainsPool) Update() {
+	Candidates.Sign()
+	Candidates.Map(func(header *Header) {
+		self.Add(header)
+	})
+	if len(self.Chains) > 100 {
+		self.IncreaseDifficulty()
+	} else {
+		self.DecreaseDifficulty()
+	}
+
+	self.Mux.Lock()
+	defer self.Mux.Unlock()
+
+	for key, chain := range self.Chains {
+		rate := chain.Rate()
+		if rate.Cmp(self.Difficulty) == -1 {
+			delete(self.Chains, key)
+		}
+		if Main == nil || !Main.Valid || rate.Cmp(Main.Rate()) == 1 {
+			if Main != chain {
+				Main = chain
+				go Main.StartFullCheck()
+			}
+		}
+	}
+}
+
+func (self *Chain) Rate() *big.Int {
+	currentid := CurrentId()
 	if currentid < self.Higher.Id {
 		return big.NewInt(0)
 	}
@@ -117,112 +167,38 @@ func CurrentId() uint64 {
 }
 
 func CreateNewBlock(curid uint64) {
-
 	if Mineblocks {
-
 		if Main != nil {
-
 			if Main.Higher.Id < curid {
-
 				newblock := &Block{
 					Head: Main.Higher.Next(),
-					Txs:  GetTxsFromPool(),
+					Txs:  Txs.GetTxs(),
 				}
 				err := newblock.Create()
 				if err != nil {
-					log.Println(err)
 					return
 				}
-				newblock.Mine()
+				newblock.Head.Mine()
 			}
 		} else {
 			newblock := NewBlock()
 			err := newblock.Create()
 			if err != nil {
-				log.Println(err)
 				return
 			}
-			newblock.Mine()
+			newblock.Head.Mine()
 		}
 	}
-}
-
-func Update(curid uint64) {
-	var mx *Chain
-	var mn *Chain
-	//var mxk string
-	var mnk string
-
-	MapHosts(func(url string, host *Host) {
-		res, _ := http.Get(url + apimainchain)
-		if res != nil {
-			b, _ := ioutil.ReadAll(res.Body)
-			res.Body.Close()
-			NewChain(DecodeHeader(b))
-		}
-	})
-
-	chainsmux.Lock()
-	for key, chain := range Chains {
-		chainsmux.Unlock()
-
-		if chain.Valid && (mx == nil || chain.Rate(curid).Cmp(mx.Rate(curid)) == 1) {
-			mx = chain
-		}
-
-		if mn == nil || chain.Rate(curid).Cmp(mn.Rate(curid)) == -1 {
-			mn = chain
-			mnk = key
-		}
-
-		chainsmux.Lock()
-	}
-	chainsmux.Unlock()
-
-	if len(Chains) > 200 {
-		delete(Chains, mnk)
-		IncreaseDifficulty()
-	}
-
-	if len(Chains) < 100 {
-		DecreaseDifficulty()
-	}
-
-	if Main != nil && Main.Higher.Id < curid {
-		DecreaseDifficulty()
-	}
-
-	if Main != mx && mx != nil {
-		Main = mx
-		go Main.StartFullCheck()
-	}
-	if Main != mx && mx == nil {
-		Main = mx
-	}
-
 }
 
 func Updater() {
 	go func() {
-		Update(CurrentId())
+		Chains.Update()
 		for {
 			cid := CurrentId()
 			CreateNewBlock(cid)
-			Update(cid)
+			Chains.Update()
 			time.Sleep(250 * time.Millisecond)
 		}
 	}()
-}
-
-func DecreaseDifficulty() {
-	Difficulty.Mul(Difficulty, b99)
-	Difficulty.Div(Difficulty, b100)
-	if Difficulty.Cmp(MinDifficulty) == -1 {
-		Difficulty.Set(MinDifficulty)
-	}
-}
-
-func IncreaseDifficulty() {
-	Difficulty.Mul(Difficulty, b101)
-	Difficulty.Div(Difficulty, b100)
 }

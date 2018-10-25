@@ -62,11 +62,11 @@ func (t *Tx) Sign(priv []byte) {
 }
 
 func (self out) getAddr() string {
-	return string(Listblob(Blob(self).Split()).Get(0))
+	return string(Listblob(Split(self)).Get(0))
 }
 
 func (self out) getAmount() uint64 {
-	return Listblob(Blob(self).Split()).Getuint64(1)
+	return Listblob(Split(self)).Getuint64(1)
 }
 
 func (t *Tx) Amount() uint64 {
@@ -168,4 +168,8 @@ func GenAccount(seed []byte) string {
 func GenPub(seed []byte) []byte {
 	_, pub := sign.GenSign([]byte{}, seed)
 	return pub
+}
+
+func (self *Tx) SelfHash() []byte {
+	return Hash(self.Encode())
 }

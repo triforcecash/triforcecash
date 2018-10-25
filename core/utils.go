@@ -144,28 +144,9 @@ func decodeprfx(b []byte, p *int) []byte {
 	return nil
 }
 
-type Blob []byte
-
-func Join(b [][]byte) Blob {
-	var self []byte
-	for _, e := range b {
-		self = append(self, encodeprfx(e)...)
-	}
-	return self
-}
-
-func (self Blob) Split() [][]byte {
-	var splited [][]byte
-	p := 0
-	for elem := decodeprfx(self, &p); elem != nil; elem = decodeprfx(self, &p) {
-		splited = append(splited, elem)
-	}
-	return splited
-}
-
 type Listblob [][]byte
 
-func (self Listblob) Get(i int) Blob {
+func (self Listblob) Get(i int) []byte {
 	if i >= len(self) {
 		return nil
 	}

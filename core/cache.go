@@ -17,25 +17,40 @@ func (self *Header) Cache(signs, block bool, checktime int64) []byte {
 }
 
 func GetHeader(key []byte) (*Header, bool, bool, int64, error) { //
-	b := Get(headprfx, key)
-	if b != nil {
-		args := Listblob(Blob(b).Split())
-		return DecodeHeader(args.Get(0)), args.GetBool(1), args.GetBool(2), int64(args.Getuint64(3)), nil
-	} else {
-		b0 := NetGet(headprfx, key, func(bts, k []byte) bool {
-			args := Listblob(Blob(bts).Split())
-			return bytes.Equal(DecodeHeader(args.Get(0)).Hash(), k)
-		})
-		if b0 != nil {
-			args := Listblob(Blob(b0).Split())
-			h := DecodeHeader(args.Get(0))
-			s := h.Check()
-			h.CheckFraud()
-			h.Cache(s, false, 0)
-			return h, s, false, 0, nil
+	blob := Get(headprfx, key)
+	if blob != nil {
+		l := Listblob(Split(blob))
+		return DecodeHeader(l.Get(0)), l.GetBool(1), l.GetBool(2), int64(l.Getuint64(3)), nil
+	}
+
+	blob = Get("tmp-"+headprfx, key)
+	if blob != nil {
+		header := DecodeHeader(blob)
+		if bytes.Equal(header.Hash(), key) {
+			s := header.Check()
+			header.Cache(s, false, 0)
+			return header, s, false, 0, nil
 		}
 	}
+
+	header := GetHeaderFromNet(key)
+	if header == nil {
+		return nil, false, false, 0, errdata
+	}
+	if bytes.Equal(header.Hash(), key) {
+		s := header.Check()
+		header.Cache(s, false, 0)
+		return header, s, false, 0, nil
+	}
+
 	return nil, false, false, 0, errdata
+}
+
+func GetHeaderFromNet(key []byte) *Header {
+	return HandleHeaders(Peers.Action(Join([][]byte{[]byte("getheader"), key}),
+		func(blob []byte) bool {
+			return bytes.Equal(DecodeHeader(Listblob(Split(blob)).Get(0)).Hash(), key)
+		}), key)
 }
 
 func (self StateMap) Cache() []byte {
@@ -55,8 +70,8 @@ func GetState(key []byte) (BState, error) {
 	if b != nil {
 		return BState(b), nil
 	} else {
-		b0 := NetGet(stateprfx, key, func(bts, k []byte) bool {
-			return bytes.Equal(Hash(bts), k)
+		b0 := GetFromNet(stateprfx, key, func(bts []byte) bool {
+			return bytes.Equal(Hash(bts), key)
 		})
 		if b0 != nil {
 			res := BState(b0)
@@ -79,8 +94,8 @@ func GetTxsList(key []byte) (TxsList, error) {
 	if b != nil {
 		return DecodeTxsList(b), nil
 	} else {
-		b0 := NetGet(txsprfx, key, func(bts, k []byte) bool {
-			return bytes.Equal(Hash(DecodeTxsList(bts).Encode()), k)
+		b0 := GetFromNet(txsprfx, key, func(bts []byte) bool {
+			return bytes.Equal(Hash(DecodeTxsList(bts).Encode()), key)
 		})
 		if b0 != nil {
 			res := DecodeTxsList(b0)

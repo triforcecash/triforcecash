@@ -17,12 +17,12 @@ func (t *Tx) Encode() []byte {
 }
 
 func DecodeTx(bts []byte) *Tx {
-	b := Listblob(Blob(bts).Split())
+	b := Listblob(Split(bts))
 	return &Tx{
-		Pubs:      b.Get(0).Split(),
-		Signs:     b.Get(1).Split(),
+		Pubs:      Split(b.Get(0)),
+		Signs:     Split(b.Get(1)),
 		Needvotes: b.Getuint8(2),
-		Outs:      b.Get(3).Split(),
+		Outs:      Split(b.Get(3)),
 		Fee:       b.Getuint64(4),
 		Nonce:     b.Getuint64(5),
 		TimeLock:  b.Getuint64(6),
@@ -40,7 +40,7 @@ func (self TxsList) Encode() []byte {
 }
 
 func DecodeTxsList(b []byte) TxsList {
-	encodedtxs := Blob(b).Split()
+	encodedtxs := Split(b)
 	txs := make(TxsList, len(encodedtxs))
 	for i, bt := range encodedtxs {
 		txs[i] = DecodeTx(bt)
@@ -62,16 +62,16 @@ func (self *Header) Encode() []byte {
 }
 
 func DecodeHeader(b []byte) *Header {
-	args := Listblob(Blob(b).Split())
+	args := Listblob(Split(b))
 	return &Header{
 		Prev:   args.Get(0),
 		State:  args.Get(1),
 		Txs:    args.Get(2),
 		Id:     args.Getuint64(3),
 		Fee:    args.Getuint64(4),
-		Pubs:   args.Get(5).Split(),
-		Signs:  args.Get(6).Split(),
-		Nonces: args.Get(7).Split(),
+		Pubs:   Split(args.Get(5)),
+		Signs:  Split(args.Get(6)),
+		Nonces: Split(args.Get(7)),
 	}
 }
 
@@ -83,7 +83,7 @@ func (self *Block) Encode() []byte {
 }
 
 func DecodeBlock(b []byte) *Block {
-	args := Listblob(Blob(b).Split())
+	args := Listblob(Split(b))
 	return &Block{
 		Head: DecodeHeader(args.Get(0)),
 		Txs:  DecodeTxsList(args.Get(1)),

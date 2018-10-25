@@ -5,6 +5,7 @@ import (
 	//"encoding/hex"
 	"github.com/triforcecash/triforcecash/core/sign"
 	"math/big"
+	"sync"
 	"time"
 )
 
@@ -71,23 +72,26 @@ func (self *Header) data() []byte {
 	return b.Bytes()
 }
 
-func (self *Header) Sign(priv []byte) bool {
-
+func (self *Header) Sign() bool {
+	var once sync.Once
+	var ret = false
 	Signmux.Lock()
 	defer Signmux.Unlock()
-	if !self.SignTokenIsUsed() {
-
-		sig, pub := sign.GenSign(self.data(), priv)
-
-		for i, p := range self.Pubs {
-			if bytes.Equal(p, pub) {
-				self.Signs[i] = sig
-			}
-		}
-		self.TakeSignToken()
-		return true
+	if self.SignTokenIsUsed() {
+		return false
 	}
-	return false
+	sig := []byte{}
+	for i, p := range self.Pubs {
+		if bytes.Equal(p, Pub) {
+			once.Do(func() {
+				sig, _ = sign.GenSign(self.data(), Priv)
+				self.TakeSignToken()
+				ret = true
+			})
+			self.Signs[i] = sig
+		}
+	}
+	return ret
 }
 
 func (self *Header) Check() bool {
@@ -102,6 +106,20 @@ func (self *Header) Check() bool {
 		}
 	}
 	return true
+}
+
+func (self *Header) NumSigns() int {
+	d := self.data()
+	if len(self.Encode()) > headermaxlen || len(self.Pubs) != signsneed || len(self.Signs) != signsneed || len(self.Nonces) != signsneed {
+		return 0
+	}
+	num := 0
+	for i, s := range self.Signs {
+		if sign.VerSign(d, s, self.Pubs[i]) {
+			num++
+		}
+	}
+	return num
 }
 
 func (self *Header) Hash() []byte {
@@ -255,4 +273,27 @@ func (self *Header) SignTokenIsUsed() bool {
 
 func (self *Header) TakeSignToken() {
 	Put(signtokenprfx, self.SignKey(), []byte("empty"))
+}
+
+func (self *Header) Mine() {
+	if Pub == nil || Priv == nil || Nonce == nil {
+		return
+	}
+	Keys.AddSelf()
+	Keys.Map(
+		func(key *Key) {
+			head := self.Fork()
+			head.Pubs = [][]byte{
+				Pub,
+				key.Pub,
+			}
+			head.Nonces = [][]byte{
+				Nonce,
+				key.Nonce,
+			}
+			if head.Rate().Cmp(Candidates.Difficulty) == 1 {
+				head.Sign()
+				Candidates.Add(head)
+			}
+		})
 }

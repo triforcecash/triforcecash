@@ -4,8 +4,6 @@ import (
 	//"log"
 	"bytes"
 	"errors"
-	"io/ioutil"
-	"net/http"
 )
 
 func NewBlock() *Block {
@@ -142,65 +140,5 @@ func (self *Block) Check() bool {
 		return true
 	} else {
 		return false
-	}
-}
-func (self *Block) Fork() *Block {
-	return &Block{
-		Head: self.Head.Fork(),
-		Txs:  self.Txs,
-	}
-
-}
-
-func (self *Block) Mine() {
-	if Pub == nil || Priv == nil || Nonce == nil {
-		return
-	}
-	b := self.Fork()
-	b.Head.Pubs = [][]byte{Pub, Pub}
-	b.Head.Nonces = [][]byte{Nonce, Nonce}
-	if b.Head.Rate().Cmp(Difficulty) == 1 {
-
-		if b.Head.Sign(Priv) {
-			b.Head.Cache(true, true, 0)
-			NewChain(b.Head)
-		}
-	}
-
-	MapHosts(func(url string, host *Host) {
-
-		if host.Pub == nil || host.Nonce == nil {
-			return
-		}
-
-		b := self.Fork()
-		b.Head.Pubs = [][]byte{Pub, host.Pub}
-		b.Head.Nonces = [][]byte{Nonce, host.Nonce}
-		if b.Head.Rate().Cmp(Difficulty) == 1 && b.Head.Sign(Priv) {
-			var buf bytes.Buffer
-			buf.Write(b.Encode())
-			go http.Post(url+mineapi, "application/octet-stream", &buf)
-		}
-
-	})
-}
-
-func MineServ(res http.ResponseWriter, req *http.Request) {
-
-	blb, err := ioutil.ReadAll(req.Body)
-	req.Body.Close()
-	if err != nil {
-		return
-	}
-	blk := DecodeBlock(blb)
-	if blk.Head.Rate().Cmp(Difficulty) == 1 && Main != nil && Main.Higher.Id <= blk.Head.Id && blk.Head.Id <= CurrentId() {
-		if blk.Head.Sign(Priv) {
-			blk.Head.Txs = Hash(blk.Txs.Encode())
-			if blk.Head.Check() {
-				blk.Txs.Cache()
-				blk.Head.Cache(true, false, 0)
-				NewChain(blk.Head)
-			}
-		}
 	}
 }

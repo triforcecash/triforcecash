@@ -12,7 +12,7 @@ const (
 	txsmaxlen    = 1 << 21
 	txmaxlen     = 1 << 12
 	headermaxlen = 1 << 12
-	StartTime    = 1535982470
+	StartTime    = 1540444591
 	BlockTime    = 90
 	checktimeout = 450
 	dbapi        = "/api/db?key="
@@ -21,44 +21,56 @@ const (
 	apimainchain = "/api/main"
 	statelen     = 48
 	protocol     = "http://"
+
+	headprfx      = "head-"
+	stateprfx     = "state-"
+	txsprfx       = "txs-"
+	hostprfx      = "host-"
+	signtokenprfx = "signtoken-"
+	banpubprfx    = "banpub-"
 )
 
 var (
-	TxsPool = TxsList{}
-	poolmux sync.Mutex
-
 	Main    *Chain
 	mainmux sync.Mutex
 
-	Port       = ""
-	PublicIp   = ""
-	ClientOnly = false
-	FullNode   = false
+	Lobby      = "triforcecash.com"
+	PortHTTP   = ""
+	Mineblocks = true
+	Minecpu    = true
+	Checkdepth = 1000
+
+	Nonce []byte
+	Priv  []byte
+	Pub   []byte
 
 	fundaccount = []byte{
 		0x4e, 0x64, 0xbe, 0x87, 0x11, 0xe6, 0x59, 0xbb, 0x25, 0x95, 0x1a, 0xfe, 0x71, 0xc7, 0x98, 0xbb, 0xf9, 0x3f, 0x4e, 0xb0, 0x00, 0x6a, 0x43, 0xa4, 0x7e, 0x00, 0xcb, 0x55, 0x69, 0x47, 0x31, 0x3b,
 	}
 
-	Hosts    = map[string]*Host{}
-	hostsmux sync.Mutex
+	Candidates = &CandidatesPool{
+		Candidates: make(map[string]*Header),
+		Difficulty: big.NewInt(1000),
+	}
 
-	HostsIgnore    = map[string]int{"127.0.0.1": 0, "0.0.0.0": 0, "255.255.255.255": 0}
-	hostsignoremux sync.Mutex
+	Chains = &ChainsPool{
+		Chains:     make(map[string]*Chain),
+		Difficulty: big.NewInt(1000),
+	}
 
-	Chains    = map[string]*Chain{}
-	chainsmux sync.Mutex
+	Keys = &KeysPool{
+		Keys:       make(map[string]*Key),
+		Difficulty: big.NewInt(1000),
+		Total:      big.NewInt(0),
+	}
 
-	Mineblocks bool
-	Minecpu    bool
+	Peers = &PeersPool{
+		Peers: make(map[string]*Peer),
+	}
 
-	Checkdepth = 1000
-
-	headprfx      = []byte("head-")
-	stateprfx     = []byte("state-")
-	txsprfx       = []byte("txs-")
-	hostprfx      = []byte("host-")
-	signtokenprfx = []byte("signtoken-")
-	banpubprfx    = []byte("banpub-")
+	Txs = &TxsPool{
+		Txs: make(map[string]*Tx),
+	}
 
 	errsum    = errors.New("sumbefore > sumafter")
 	errdata   = errors.New("Can not find data")
@@ -67,12 +79,6 @@ var (
 	errheader = errors.New("Header signs is invalid")
 	errblock  = errors.New("Block is invalid")
 
-	Difficulty    = new(big.Int).SetInt64(1000)
-	MinDifficulty = new(big.Int).SetInt64(1000)
-
-	Nonce   []byte
-	Priv    []byte
-	Pub     []byte
 	Signmux sync.Mutex
 
 	one = new(big.Int).SetInt64(1)

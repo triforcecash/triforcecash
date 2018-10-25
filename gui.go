@@ -19,11 +19,11 @@ func main() {
 	checkdepth := flag.Int("checkdepth", 1000, "For a stronger check, you should set 10000.")
 	hostname := flag.String("host", "127.0.0.1", "Public ip")
 	fullnode := flag.Bool("fullnode", false, "Will be able fullnode features")
-	lobby := flag.String("lobby", "185.234.15.72:8075", "Lobby node")
+	lobby := flag.String("lobby", "127.0.0.1:8075", "Lobby node")
 	flag.Parse()
 	core.FullNode = *fullnode
 	core.Checkdepth = *checkdepth
-	core.Port = fmt.Sprint(":", *port)
+	core.PortHTTP = fmt.Sprint(":", *port)
 	core.PublicIp = *hostname
 	core.Mineblocks = false
 	core.Minecpu = false

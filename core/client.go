@@ -105,33 +105,17 @@ func SetSeed(seed []byte) ([]byte, []byte, []byte) {
 }
 
 func Load() {
-	b := Get([]byte{}, []byte("chains"))
+	b := Get("", []byte("chains"))
 	if b != nil {
-		chainsmux.Lock()
 		json.Unmarshal(b, &Chains)
-		chainsmux.Unlock()
-	}
-	b = Get([]byte{}, []byte("hosts"))
-	if b != nil {
-		hostsmux.Lock()
-		json.Unmarshal(b, &Hosts)
-		hostsmux.Unlock()
 	}
 }
 
 func Save() {
 
-	chainsmux.Lock()
 	b, _ := json.Marshal(Chains)
-	chainsmux.Unlock()
 
-	Put([]byte{}, []byte("chains"), b)
-
-	hostsmux.Lock()
-	b, _ = json.Marshal(Hosts)
-	hostsmux.Unlock()
-
-	Put([]byte{}, []byte("hosts"), b)
+	Put("", []byte("chains"), b)
 
 	SaveNonce()
 }
@@ -139,14 +123,25 @@ func Save() {
 func Start() {
 	Load()
 	Updater()
-	Network()
 	go MineKey()
 	go func() {
 		for {
-			time.Sleep(600 * time.Second)
+			time.Sleep(300 * time.Second)
 			Save()
 		}
 	}()
+
+	go func() {
+		for {
+			Keys.Sync()
+			Peers.Sync()
+			Candidates.Sync()
+			Txs.Sync()
+			time.Sleep(10 * time.Second)
+		}
+	}()
+	Serve()
+
 }
 
 func Stop() {

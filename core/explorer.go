@@ -9,14 +9,9 @@ import (
 	"net/http"
 )
 
-
-var templates,err = template.New("templates").Parse(Templates)
+var templates, err = template.New("templates").Parse(Templates)
 
 const (
-	
-
-
-
 	Templates = `
 {{define "Head"}}
 <!DOCTYPE html>
@@ -191,132 +186,129 @@ const (
 `
 )
 
-func ExplorerServ(res http.ResponseWriter,req *http.Request){
-	hexkey:=req.URL.Query().Get("key")
-	key,_:=hex.DecodeString(hexkey)
-	if err!=nil{
+func ExplorerServ(res http.ResponseWriter, req *http.Request) {
+	hexkey := req.URL.Query().Get("key")
+	key, _ := hex.DecodeString(hexkey)
+	if err != nil {
 		log.Println(err)
 	}
 
+	head, _, _, _, _ := GetHeader(key)
 
-	head,_,_,_,_:=GetHeader(key)
-
-	if len(key)<32{
-		head=Main.Higher
+	if len(key) < 32 {
+		head = Main.Higher
 	}
 
-	if head!=nil{
-		templates.ExecuteTemplate(res.(io.Writer),"BlockTmplt",BlockToTemplate(head))
+	if head != nil {
+		templates.ExecuteTemplate(res.(io.Writer), "BlockTmplt", BlockToTemplate(head))
 		return
 	}
-	state:=GetBalance(string(key))
-	if state!=nil{
+	state := GetBalance(string(key))
+	if state != nil {
 
-		templates.ExecuteTemplate(res.(io.Writer),"AccountTmplt",StateToTemplate(state))
+		templates.ExecuteTemplate(res.(io.Writer), "AccountTmplt", StateToTemplate(state))
 		return
 	}
 
 }
 
-
-type StateTmplt struct{
-	Addr string
+type StateTmplt struct {
+	Addr    string
 	Balance uint64
-	Nonce uint64
+	Nonce   uint64
 	Confirm uint64
 	TxsList []*TxTmplt
 }
 
-type BlockTmplt struct{
-	Prev string
-	Hash string
-	Id uint64
-	Rate string
-	Miner1 string
-	Miner2 string
-	Reward uint64
-	Fee uint64
-	Txs uint64
+type BlockTmplt struct {
+	Prev     string
+	Hash     string
+	Id       uint64
+	Rate     string
+	Miner1   string
+	Miner2   string
+	Reward   uint64
+	Fee      uint64
+	Txs      uint64
 	Accounts uint64
-	TxsList []*TxTmplt
+	TxsList  []*TxTmplt
 }
 
-func StateToTemplate(state *State)*StateTmplt{
-	hist:=GetTxsHistory(string(state.Addr))
-	
+func StateToTemplate(state *State) *StateTmplt {
+	hist := GetTxsHistory(string(state.Addr))
+
 	return &StateTmplt{
-		Addr:fmt.Sprintf("%x",state.Addr),
-		Balance:state.Balance,
-		Confirm:state.Confirm,
-		Nonce:state.Nonce,
-		TxsList:TxsToTemplate(TxsHistoryToTxsList(hist)),
+		Addr:    fmt.Sprintf("%x", state.Addr),
+		Balance: state.Balance,
+		Confirm: state.Confirm,
+		Nonce:   state.Nonce,
+		TxsList: TxsToTemplate(TxsHistoryToTxsList(hist)),
 	}
 }
 
-
-func BlockToTemplate(head *Header)*BlockTmplt{
-	txs,_:=GetTxsList(head.Txs)
-	sts,_:=GetState(head.State)
+func BlockToTemplate(head *Header) *BlockTmplt {
+	txs, _ := GetTxsList(head.Txs)
+	sts, _ := GetState(head.State)
 	return &BlockTmplt{
-		Prev:fmt.Sprintf("%x",head.Prev),
-		Hash: fmt.Sprintf("%x",head.Hash()),
-		Id: head.Id,
-		Rate: head.Rate().String(),
-		Miner1: fmt.Sprintf("%x",Addr(head.Pubs[0])),
-		Miner2: fmt.Sprintf("%x",Addr(head.Pubs[1])),
-		Reward: Reward(head.Id+1),
-		Fee: head.Fee,
-		Txs: uint64(len(txs)),
+		Prev:     fmt.Sprintf("%x", head.Prev),
+		Hash:     fmt.Sprintf("%x", head.Hash()),
+		Id:       head.Id,
+		Rate:     head.Rate().String(),
+		Miner1:   fmt.Sprintf("%x", Addr(head.Pubs[0])),
+		Miner2:   fmt.Sprintf("%x", Addr(head.Pubs[1])),
+		Reward:   Reward(head.Id + 1),
+		Fee:      head.Fee,
+		Txs:      uint64(len(txs)),
 		Accounts: uint64(sts.Len()),
-		TxsList:TxsToTemplate(txs),
+		TxsList:  TxsToTemplate(txs),
 	}
 }
 
-type TxOutTmplt struct{
-	Addr string
+type TxOutTmplt struct {
+	Addr   string
 	Amount uint64
 }
 
-type TxTmplt struct{
+type TxTmplt struct {
 	Sender string
 	Amount uint64
-	Nonce uint64
-	Outs []*TxOutTmplt
+	Nonce  uint64
+	Outs   []*TxOutTmplt
 }
 
-func TxToTemplate(tx *Tx)*TxTmplt{
-	txtmplt:=&TxTmplt{
-		Sender:fmt.Sprintf("%x",tx.Sender()),
-		Amount:tx.Amount(),
-		Nonce:tx.Nonce,
-		Outs:make([]*TxOutTmplt,len(tx.Outs)),
+func TxToTemplate(tx *Tx) *TxTmplt {
+	txtmplt := &TxTmplt{
+		Sender: fmt.Sprintf("%x", tx.Sender()),
+		Amount: tx.Amount(),
+		Nonce:  tx.Nonce,
+		Outs:   make([]*TxOutTmplt, len(tx.Outs)),
 	}
-	for i, o := range tx.Outs{
-		txtmplt.Outs[i]=&TxOutTmplt{
-			Addr: fmt.Sprintf("%x", out(o).getAddr()),
+	for i, o := range tx.Outs {
+		txtmplt.Outs[i] = &TxOutTmplt{
+			Addr:   fmt.Sprintf("%x", out(o).getAddr()),
 			Amount: out(o).getAmount(),
 		}
 	}
 	return txtmplt
 }
 
-func TxsToTemplate(txs TxsList)[]*TxTmplt{
-	txstmplt:=make([]*TxTmplt,len(txs))
-	for i,tx:=range txs{
-		txstmplt[i]=TxToTemplate(tx)
+func TxsToTemplate(txs TxsList) []*TxTmplt {
+	txstmplt := make([]*TxTmplt, len(txs))
+	for i, tx := range txs {
+		txstmplt[i] = TxToTemplate(tx)
 	}
 	return txstmplt
 }
 
-func TxsHistoryToTxsList(history []SearchTxsResultItem)TxsList{
-	res:=TxsList{}
-	for _,item:=range history{
-		l:=len(item.TxsList)
-		reverse:=make(TxsList,l)
-		for i:=l-1;i>=0;i--{
-			reverse[i]=item.TxsList[l-i-1]
+func TxsHistoryToTxsList(history []SearchTxsResultItem) TxsList {
+	res := TxsList{}
+	for _, item := range history {
+		l := len(item.TxsList)
+		reverse := make(TxsList, l)
+		for i := l - 1; i >= 0; i-- {
+			reverse[i] = item.TxsList[l-i-1]
 		}
-		res=append(res,reverse...)
+		res = append(res, reverse...)
 	}
 	return res
 }
