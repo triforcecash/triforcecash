@@ -12,9 +12,9 @@ const (
 	txsmaxlen    = 1 << 21
 	txmaxlen     = 1 << 12
 	headermaxlen = 1 << 12
-	StartTime    = 1540444591
+	StartTime    = 1540574205
 	BlockTime    = 90
-	checktimeout = 450
+	checktimeout = 0
 	dbapi        = "/api/db?key="
 	mineapi      = "/api/mine"
 	apipushtx    = "/api/pushtx"

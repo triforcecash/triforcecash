@@ -2,6 +2,7 @@ package core
 
 import (
 	"log"
+	"time"
 	"net"
 )
 
@@ -9,6 +10,10 @@ func ListenTCP() {
 	ln, err := net.Listen("tcp", Port)
 	ErrorHandler(err)
 	defer ln.Close()
+		go func(){for{
+			log.Println(s,f)
+			time.Sleep(10*time.Second)
+			}}()
 	for {
 		conn, err := ln.Accept()
 		ErrorHandler(err)
@@ -29,7 +34,7 @@ func HandleConn(conn net.Conn) {
 
 func GetFromNet(prfx string, k []byte, hand func(b []byte) bool) []byte {
 	key := append([]byte(prfx), k...)
-	b := Peers.Action(Join([][]byte{
+	b := Peers.Request(Join([][]byte{
 		[]byte("get"),
 		key,
 	}),

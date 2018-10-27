@@ -102,7 +102,7 @@ func (self *KeysPool) AddNew(blob []byte) {
 }
 
 func (self *KeysPool) Sync() {
-	res := Peers.Action(
+	res := Peers.Request(
 		Join(
 			[][]byte{
 				[]byte("sync keys"),

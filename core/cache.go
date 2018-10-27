@@ -23,7 +23,7 @@ func GetHeader(key []byte) (*Header, bool, bool, int64, error) { //
 		return DecodeHeader(l.Get(0)), l.GetBool(1), l.GetBool(2), int64(l.Getuint64(3)), nil
 	}
 
-	blob = Get("tmp-"+headprfx, key)
+	blob = Get("tmp-", key)
 	if blob != nil {
 		header := DecodeHeader(blob)
 		if bytes.Equal(header.Hash(), key) {
@@ -47,7 +47,7 @@ func GetHeader(key []byte) (*Header, bool, bool, int64, error) { //
 }
 
 func GetHeaderFromNet(key []byte) *Header {
-	return HandleHeaders(Peers.Action(Join([][]byte{[]byte("getheader"), key}),
+	return HandleHeaders(Peers.Request(Join([][]byte{[]byte("getheader"), key}),
 		func(blob []byte) bool {
 			return bytes.Equal(DecodeHeader(Listblob(Split(blob)).Get(0)).Hash(), key)
 		}), key)

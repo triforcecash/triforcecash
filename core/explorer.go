@@ -193,10 +193,12 @@ func ExplorerServ(res http.ResponseWriter, req *http.Request) {
 		log.Println(err)
 	}
 
-	head, _, _, _, _ := GetHeader(key)
+	var head *Header
 
 	if len(key) < 32 {
 		head = Main.Higher
+	}else{
+		head, _, _, _, _ = GetHeader(key)
 	}
 
 	if head != nil {

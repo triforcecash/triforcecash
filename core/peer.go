@@ -15,6 +15,7 @@ type Peer struct {
 	RemoteAddr   string
 	Conn         net.Conn
 	ReadChan     chan []byte `json:"-"`
+	TmpChan      chan []byte `json:"-"`
 	WriteChan    chan []byte `json:"-"`
 	RequestChan  chan []byte `json:"-"`
 	ResponseChan chan []byte `json:"-"`
@@ -74,7 +75,7 @@ func (self *PeersPool) ConnIsExist(ip string) bool {
 }
 
 func (self *PeersPool) Sync() {
-	res := Peers.Action(Join([][]byte{
+	res := Peers.Request(Join([][]byte{
 		[]byte("sync peers"),
 		[]byte{},
 	}),
@@ -137,6 +138,7 @@ func NewPeer(conn net.Conn) *Peer {
 		Conn:         conn,
 		WriteChan:    make(chan []byte),
 		ReadChan:     make(chan []byte),
+		TmpChan:      make(chan []byte),
 		RequestChan:  make(chan []byte),
 		ResponseChan: make(chan []byte),
 	}
@@ -173,6 +175,7 @@ func (self *Peer) Close() {
 		self.Conn = nil
 		close(self.WriteChan)
 		close(self.ReadChan)
+		close(self.TmpChan)
 		close(self.ResponseChan)
 		close(self.RequestChan)
 		Peers.NumSub()
@@ -194,8 +197,8 @@ func (self *PeersPool) ConnectToPeers() {
 		time.Sleep(10 * time.Second)
 	}
 }
-
-func (self *PeersPool) Action(body []byte, check func(blob []byte) bool) []byte {
+var f,s int	
+func (self *PeersPool) Request(body []byte, check func(blob []byte) bool) []byte {
 	defer func() {
 		recover()
 	}()
@@ -216,6 +219,14 @@ func (self *PeersPool) Action(body []byte, check func(blob []byte) bool) []byte 
 					if check(tmp) {
 						ch <- tmp
 					}
+					if check(tmp){
+						if !check(nil){
+							s++
+						}
+					}else{
+						f++
+					}
+
 				case kill <- 0:
 				}
 			}
@@ -252,6 +263,7 @@ func HandlePeer(peer *Peer) {
 			recover()
 		}()
 		var blob []byte
+		var params [][]byte
 		var err error
 		for {
 			blob, err = peer.Read()
@@ -259,11 +271,18 @@ func HandlePeer(peer *Peer) {
 				peer.Close()
 				return
 			}
-			select {
-			case peer.ReadChan <- blob:
-			case <-time.After(ConnectionDeadline.Sub(time.Now())):
-				peer.Close()
-				return
+			params = Split(blob)
+			if len(params)!=2{
+				continue	
+			}
+			switch string(params[0]){
+				case "request":
+					peer.WriteChan<-Join([][]byte{
+						[]byte("response"),
+						HandleRequest(params[1]),
+						})
+				case "response":
+					peer.TmpChan<-params[1]
 			}
 		}
 	}()
@@ -284,6 +303,7 @@ func HandlePeer(peer *Peer) {
 					return
 				}
 			case <-time.After(ConnectionDeadline.Sub(time.Now())):
+				peer.Close()
 				return
 			}
 		}
@@ -295,14 +315,14 @@ func HandlePeer(peer *Peer) {
 			recover()
 		}()
 		var tmp []byte
-
 		for {
 			select {
-			case tmp = <-peer.ReadChan:
-				peer.WriteChan <- HandleRequest(tmp)
 			case tmp = <-peer.RequestChan:
-				peer.WriteChan <- tmp
-				tmp = <-peer.ReadChan
+				peer.WriteChan <- Join([][]byte{
+					[]byte("request"),
+					tmp,
+				})
+				tmp = <-peer.TmpChan
 				peer.ResponseChan <- tmp
 
 			case <-time.After(ConnectionDeadline.Sub(time.Now())):
@@ -323,7 +343,7 @@ func (self *PeersPool) Exist(key string) bool {
 	return exist
 }
 
-func (self *Peer) Action(blob []byte) []byte {
+func (self *Peer) Request(blob []byte) []byte {
 	defer func() {
 		recover()
 	}()

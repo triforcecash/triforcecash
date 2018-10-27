@@ -80,7 +80,7 @@ func HandleHeaders(blob []byte, key []byte) *Header {
 			}
 		}
 		lh = h
-		Put("tmp-"+headprfx, h.Hash(), h.Encode())
+		Put("tmp-", h.Hash(), h.Encode())
 	}
 
 	return headers[0]

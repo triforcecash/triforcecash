@@ -15,7 +15,7 @@ type TxsPool struct {
 }
 
 func (self *TxsPool) Sync() {
-	res := Peers.Action(Join([][]byte{
+	res := Peers.Request(Join([][]byte{
 		[]byte("sync txspool"),
 		[]byte{},
 	}),

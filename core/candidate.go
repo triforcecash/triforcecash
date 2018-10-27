@@ -88,7 +88,7 @@ func (self *CandidatesPool) Sync() {
 			log.Println(r)
 		}
 	}()
-	res := Peers.Action(Join([][]byte{
+	res := Peers.Request(Join([][]byte{
 		[]byte("sync candidates"),
 		[]byte{},
 	}),
