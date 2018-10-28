@@ -2,7 +2,6 @@ package core
 
 import (
 	"log"
-	"time"
 	"net"
 )
 
@@ -35,10 +34,8 @@ func GetFromNet(prfx string, k []byte, hand func(b []byte) bool) []byte {
 		key,
 	}),
 		func(blob []byte) bool {
-			log.Println(hand(blob))
 			return hand(blob)
 		},
 	)
-	log.Printf("%q", b)
 	return b
 }

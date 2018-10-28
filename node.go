@@ -4,7 +4,6 @@ import (
 	"flag"
 	"fmt"
 	"github.com/triforcecash/triforcecash/core"
-	"sync"
 )
 
 func main() {
@@ -35,11 +34,6 @@ func main() {
 		core.Lobby = *lobby
 	}
 
-	core.Start()
 	defer core.Stop()
-	fmt.Println("Press Сtr+C to stop")
-
-	var wg sync.WaitGroup
-	wg.Add(1)
-	wg.Wait()
+	core.Start()
 }

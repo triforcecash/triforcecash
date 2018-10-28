@@ -129,7 +129,7 @@ func (self *Chain) Rate() *big.Int {
 		h = h.GetPrev()
 
 		if h == nil {
-			self.Valid=false
+			self.Valid = false
 			self.Avr.Div(sum, num)
 			return self.Avr
 		}

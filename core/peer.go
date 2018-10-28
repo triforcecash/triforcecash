@@ -9,6 +9,13 @@ import (
 
 const (
 	MaxPeersLen = 1000
+	Port        = ":6885"
+	PortNum     = 6885
+	Deadline    = 600
+	MaxPeers    = 400
+	Delay       = 250
+	TimeOut     = 30
+	ReadLimit   = 1 << 26
 )
 
 type Peer struct {
@@ -22,9 +29,10 @@ type Peer struct {
 }
 
 type PeersPool struct {
-	Peers map[string]*Peer
-	Mux   sync.Mutex
-	Num   int
+	Peers   map[string]*Peer
+	Mux     sync.Mutex
+	Num     int
+	Ignored map[string]bool
 }
 
 var errconn = errors.New("Connection closed")
@@ -36,6 +44,11 @@ func (self *PeersPool) NumAdd() {
 }
 
 func (self *PeersPool) Connect(ip string) {
+
+	if _, ok := self.Ignored[ip]; ok {
+		return
+	}
+
 	if self.ConnIsExist(ip) {
 		return
 	} else {
@@ -197,7 +210,7 @@ func (self *PeersPool) ConnectToPeers() {
 		time.Sleep(10 * time.Second)
 	}
 }
-var f,s int	
+
 func (self *PeersPool) Request(body []byte, check func(blob []byte) bool) []byte {
 	defer func() {
 		recover()
@@ -219,14 +232,6 @@ func (self *PeersPool) Request(body []byte, check func(blob []byte) bool) []byte
 					if check(tmp) {
 						ch <- tmp
 					}
-					if check(tmp){
-						if !check(nil){
-							s++
-						}
-					}else{
-						f++
-					}
-
 				case kill <- 0:
 				}
 			}
@@ -272,17 +277,17 @@ func HandlePeer(peer *Peer) {
 				return
 			}
 			params = Split(blob)
-			if len(params)!=2{
-				continue	
+			if len(params) != 2 {
+				continue
 			}
-			switch string(params[0]){
-				case "request":
-					peer.WriteChan<-Join([][]byte{
-						[]byte("response"),
-						HandleRequest(params[1]),
-						})
-				case "response":
-					peer.TmpChan<-params[1]
+			switch string(params[0]) {
+			case "request":
+				peer.WriteChan <- Join([][]byte{
+					[]byte("response"),
+					HandleRequest(params[1]),
+				})
+			case "response":
+				peer.TmpChan <- params[1]
 			}
 		}
 	}()

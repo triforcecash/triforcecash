@@ -35,82 +35,82 @@ func HandleRequest(blob []byte) []byte {
 	}
 }
 
-const(
-	StackDepth = 1000
-	MaxStackLen = 1<<24
+const (
+	StackDepth  = 1000
+	MaxStackLen = 1 << 24
 )
 
 func GetStack(root []byte) []byte {
 	var res = [][]byte{}
-	
+
 	var head *Header
 	var stacklen int
 
-	head=GetHeaderLocal(root)
-	for i:=0;i<StackDepth && stacklen<MaxStackLen;i++{
-		if head==nil{
+	head = GetHeaderLocal(root)
+	for i := 0; i < StackDepth && stacklen < MaxStackLen; i++ {
+		if head == nil {
 			return Join(res)
 		}
-		stacklen+=len(head.Encode())
-		res=append(res,head.Encode())
-		if head.Id==0{
+		stacklen += len(head.Encode())
+		res = append(res, head.Encode())
+		if head.Id == 0 {
 			break
 		}
-		head=GetHeaderLocal(head.Prev)
-	}		
+		head = GetHeaderLocal(head.Prev)
+	}
 
-	head=GetHeaderLocal(root)
-	for i:=0;i<StackDepth && stacklen<MaxStackLen;i++{
-		if head==nil{
-			return Join(res)
-		}
-
-		blob:=Get(stateprfx,head.State)
-		if blob==nil{
-			blob=Get("tmp-",head.State)
-		}
-		if blob!=nil && len(blob)>0{
-			stacklen+=len(blob)
-			res=append(res,blob)	
-		}
-		
-		if head.Id==0{
-			break
-		}
-		head=GetHeaderLocal(head.Prev)
-	}		
-
-	head=GetHeaderLocal(root)
-	for i:=0;i<StackDepth && stacklen<MaxStackLen;i++{
-		if head==nil{
+	head = GetHeaderLocal(root)
+	for i := 0; i < StackDepth && stacklen < MaxStackLen; i++ {
+		if head == nil {
 			return Join(res)
 		}
 
-		blob:=Get(txsprfx,head.Txs)
-		if blob==nil{
-			blob=Get("tmp-",head.Txs)
+		blob := Get(stateprfx, head.State)
+		if blob == nil {
+			blob = Get("tmp-", head.State)
 		}
-		if blob!=nil&&len(blob)>0{
-			stacklen+=len(blob)
-			res=append(res,blob)	
+		if blob != nil && len(blob) > 0 {
+			stacklen += len(blob)
+			res = append(res, blob)
 		}
-		
-		if head.Id==0{
+
+		if head.Id == 0 {
 			break
 		}
-		head=GetHeaderLocal(head.Prev)
-	}	
+		head = GetHeaderLocal(head.Prev)
+	}
+
+	head = GetHeaderLocal(root)
+	for i := 0; i < StackDepth && stacklen < MaxStackLen; i++ {
+		if head == nil {
+			return Join(res)
+		}
+
+		blob := Get(txsprfx, head.Txs)
+		if blob == nil {
+			blob = Get("tmp-", head.Txs)
+		}
+		if blob != nil && len(blob) > 0 {
+			stacklen += len(blob)
+			res = append(res, blob)
+		}
+
+		if head.Id == 0 {
+			break
+		}
+		head = GetHeaderLocal(head.Prev)
+	}
 	return Join(res)
 }
 
-func GetHeaderLocal(key []byte) *Header{
-	blob:=Get(headprfx,key)
-	if blob!=nil{
+func GetHeaderLocal(key []byte) *Header {
+	blob := Get(headprfx, key)
+	if blob != nil {
 		return DecodeHeader(Listblob(Split(blob)).Get(0))
 	}
 
-	blob = Get("tmp-",key)
-	if blob!=nil{
+	blob = Get("tmp-", key)
+	if blob != nil {
 		return DecodeHeader(blob)
 	}
 
@@ -118,11 +118,11 @@ func GetHeaderLocal(key []byte) *Header{
 }
 
 func HandleStack(blob []byte, key []byte) {
-	Stack:=Split(blob)
-	if len(Stack)>0 && !bytes.Equal(Hash(Stack[0]),key){
+	Stack := Split(blob)
+	if len(Stack) > 0 && !bytes.Equal(Hash(Stack[0]), key) {
 		return
-	} 
-	for _,item:=range Stack{
-		Put("tmp-",Hash(item),item)
+	}
+	for _, item := range Stack {
+		Put("tmp-", Hash(item), item)
 	}
 }

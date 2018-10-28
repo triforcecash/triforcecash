@@ -15,21 +15,29 @@ var (
 )
 
 func main() {
-	port := flag.Int("port", 8075, "Port")
-	checkdepth := flag.Int("checkdepth", 1000, "For a stronger check, you should set 10000.")
-	hostname := flag.String("host", "127.0.0.1", "Public ip")
-	fullnode := flag.Bool("fullnode", false, "Will be able fullnode features")
-	lobby := flag.String("lobby", "127.0.0.1:8075", "Lobby node")
+
+	port := flag.Int("port", 0, "Http server port")
+	checkdepth := flag.Int("checkdepth", 0, "For a stronger check, you should set 10000.")
+	lobby := flag.String("lobby", "", "Lobby node")
 	flag.Parse()
-	core.FullNode = *fullnode
-	core.Checkdepth = *checkdepth
-	core.PortHTTP = fmt.Sprint(":", *port)
-	core.PublicIp = *hostname
+
 	core.Mineblocks = false
 	core.Minecpu = false
-	core.ClientOnly = true
-	core.AddHostAddr(*lobby)
-	core.Start()
+
+	if *checkdepth != 0 {
+		core.Checkdepth = *checkdepth
+	}
+
+	if *port != 0 {
+		core.PortHTTP = fmt.Sprint(":", *port)
+
+	}
+
+	if *lobby != "" {
+		core.Lobby = *lobby
+	}
+
+	go core.Start()
 	defer core.Stop()
 
 	ui.Main(func() {

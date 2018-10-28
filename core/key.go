@@ -2,6 +2,7 @@ package core
 
 import (
 	"bytes"
+	"fmt"
 	"math/big"
 	"sync"
 )
@@ -11,6 +12,7 @@ const (
 )
 
 type Key struct {
+	Addr  string
 	Pub   []byte
 	Nonce []byte
 	Rate  *big.Int
@@ -23,6 +25,17 @@ func (self *Key) CalcRate() *big.Int {
 	buf.Write(self.Nonce)
 	self.Rate = coef(buf.Bytes())
 	return self.Rate
+}
+
+func (self *KeysPool) CalcParts() {
+	total := new(big.Float).SetInt(self.Total)
+	self.Mux.Lock()
+	defer self.Mux.Unlock()
+	for _, k := range self.Keys {
+		rate := new(big.Float).SetInt(k.Rate)
+		tmp := new(big.Float).Quo(rate, total)
+		k.Part, _ = tmp.Float64()
+	}
 }
 
 type KeysPool struct {
@@ -78,7 +91,7 @@ func (self *KeysPool) Add(key *Key) {
 	}
 
 	if key.CalcRate().Cmp(self.Difficulty) == 1 {
-
+		key.Addr = fmt.Sprintf("%x", Addr(key.Pub))
 		self.Mux.Lock()
 		defer self.Mux.Unlock()
 		if key0, ok := self.Keys[string(key.Pub)]; ok {
@@ -121,6 +134,7 @@ func (self *KeysPool) Sync() {
 	}
 
 	self.DeleteLowRate()
+	self.CalcParts()
 }
 
 func (self *KeysPool) DeleteLowRate() {

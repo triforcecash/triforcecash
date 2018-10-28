@@ -1,7 +1,6 @@
 package core
 
 import (
-	"log"
 	"bytes"
 )
 
@@ -50,7 +49,6 @@ func GetHeader(key []byte) (*Header, bool, bool, int64, error) { //
 func GetStackByRoot(key []byte) {
 	HandleStack(Peers.Request(Join([][]byte{[]byte("get stack"), key}),
 		func(blob []byte) bool {
-			log.Println("Equal",bytes.Equal(DecodeHeader(Listblob(Split(blob)).Get(0)).Hash(), key))
 			return bytes.Equal(DecodeHeader(Listblob(Split(blob)).Get(0)).Hash(), key)
 		}), key)
 }
@@ -80,9 +78,9 @@ func GetState(key []byte) (BState, error) {
 		res.Cache()
 		return res, nil
 	}
-	
+
 	b = GetFromNet(stateprfx, key, func(bts []byte) bool {
-			return bytes.Equal(Hash(bts), key)
+		return bytes.Equal(Hash(bts), key)
 	})
 	if b != nil {
 		res := BState(b)
@@ -103,25 +101,25 @@ func GetTxsList(key []byte) (TxsList, error) {
 	b := Get(txsprfx, key)
 	if b != nil {
 		return DecodeTxsList(b), nil
-	} 	
-	
-	b = Get("tmp-",key)
+	}
+
+	b = Get("tmp-", key)
 
 	if b != nil {
 		res := DecodeTxsList(b)
 		res.Cache()
 		return res, nil
 	}
-	
+
 	b = GetFromNet(txsprfx, key, func(bts []byte) bool {
-			return bytes.Equal(Hash(DecodeTxsList(bts).Encode()), key)
-		})
-	
+		return bytes.Equal(Hash(DecodeTxsList(bts).Encode()), key)
+	})
+
 	if b != nil {
 		res := DecodeTxsList(b)
 		res.Cache()
 		return res, nil
 	}
-	
+
 	return nil, errdata
 }

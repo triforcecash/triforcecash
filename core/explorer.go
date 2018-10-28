@@ -197,8 +197,8 @@ func ExplorerServ(res http.ResponseWriter, req *http.Request) {
 
 	if len(key) < 32 {
 		head = Main.Higher
-	}else{
-		head, _, _, _, _ = GetHeader(key)
+	} else {
+		head = GetHeaderLocal(key)
 	}
 
 	if head != nil {

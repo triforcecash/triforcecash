@@ -36,8 +36,8 @@ var (
 
 	Lobby      = "triforcecash.com"
 	PortHTTP   = ""
-	Mineblocks = true
-	Minecpu    = true
+	Mineblocks = false
+	Minecpu    = false
 	Checkdepth = 1000
 
 	Nonce []byte
@@ -65,7 +65,8 @@ var (
 	}
 
 	Peers = &PeersPool{
-		Peers: make(map[string]*Peer),
+		Peers:   make(map[string]*Peer),
+		Ignored: map[string]bool{"127.0.0.1": false, "0.0.0.0": false, "255.255.255.255": false},
 	}
 
 	Txs = &TxsPool{

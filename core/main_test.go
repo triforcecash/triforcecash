@@ -34,7 +34,7 @@ func TestSplit(t *testing.T) {
 	t.Log(DecodeHeader(nil))
 }
 
-func TestCleaner(t *testing.T){
+func TestCleaner(t *testing.T) {
 	RemoveTmp()
 }
 
