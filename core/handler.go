@@ -20,8 +20,8 @@ func HandleRequest(blob []byte) []byte {
 		return body
 	case "get":
 		return Get("", body)
-	case "getheader":
-		return GetHeaders(body)
+	case "get stack":
+		return GetStack(body)
 	case "sync candidates":
 		return Candidates.Encode()
 	case "sync txspool":
@@ -35,53 +35,95 @@ func HandleRequest(blob []byte) []byte {
 	}
 }
 
-func GetHeaders(key []byte) []byte {
-	var res [][]byte
-	tmp := Listblob(Split(Get(headprfx, key))).Get(0)
-	if tmp == nil {
-		return nil
-	}
-	var header *Header
-	for i := 0; i < 1000; i++ {
-		header = DecodeHeader(tmp)
-		res = append(res, header.Encode())
-		tmp = Listblob(Split(Get(headprfx, header.Prev))).Get(0)
-		if tmp == nil {
+const(
+	StackDepth = 1000
+	MaxStackLen = 1<<24
+)
+
+func GetStack(root []byte) []byte {
+	var res = [][]byte{}
+	
+	var head *Header
+	var stacklen int
+
+	head=GetHeaderLocal(root)
+	for i:=0;i<StackDepth && stacklen<MaxStackLen;i++{
+		if head==nil{
+			return Join(res)
+		}
+		stacklen+=len(head.Encode())
+		res=append(res,head.Encode())
+		if head.Id==0{
 			break
 		}
-	}
+		head=GetHeaderLocal(head.Prev)
+	}		
+
+	head=GetHeaderLocal(root)
+	for i:=0;i<StackDepth && stacklen<MaxStackLen;i++{
+		if head==nil{
+			return Join(res)
+		}
+
+		blob:=Get(stateprfx,head.State)
+		if blob==nil{
+			blob=Get("tmp-",head.State)
+		}
+		if blob!=nil && len(blob)>0{
+			stacklen+=len(blob)
+			res=append(res,blob)	
+		}
+		
+		if head.Id==0{
+			break
+		}
+		head=GetHeaderLocal(head.Prev)
+	}		
+
+	head=GetHeaderLocal(root)
+	for i:=0;i<StackDepth && stacklen<MaxStackLen;i++{
+		if head==nil{
+			return Join(res)
+		}
+
+		blob:=Get(txsprfx,head.Txs)
+		if blob==nil{
+			blob=Get("tmp-",head.Txs)
+		}
+		if blob!=nil&&len(blob)>0{
+			stacklen+=len(blob)
+			res=append(res,blob)	
+		}
+		
+		if head.Id==0{
+			break
+		}
+		head=GetHeaderLocal(head.Prev)
+	}	
 	return Join(res)
 }
 
-func HandleHeaders(blob []byte, key []byte) *Header {
-	EncodedHeaders := Split(blob)
-	headers := []*Header{}
-	for _, encodedheader := range EncodedHeaders {
-		header := DecodeHeader(encodedheader)
-		headers = append(headers, header)
+func GetHeaderLocal(key []byte) *Header{
+	blob:=Get(headprfx,key)
+	if blob!=nil{
+		return DecodeHeader(Listblob(Split(blob)).Get(0))
 	}
 
-	if len(headers) == 0 {
-		return nil
+	blob = Get("tmp-",key)
+	if blob!=nil{
+		return DecodeHeader(blob)
 	}
 
-	if !bytes.Equal(headers[0].Hash(), key) {
-		return nil
-	}
-	var lh *Header
-	for i, h := range headers {
-		if i == 0 {
-			if !bytes.Equal(h.Hash(), key) {
-				return nil
-			}
-		} else {
-			if !IsPrev(h, lh) {
-				return nil
-			}
-		}
-		lh = h
-		Put("tmp-", h.Hash(), h.Encode())
-	}
+	return nil
+}
 
-	return headers[0]
+func HandleStack(blob []byte, key []byte) {
+	Stack:=Split(blob)
+	if len(Stack)>0 && !bytes.Equal(Hash(Stack[0]),key){
+		return
+	} 
+	var c int
+	for _,item:=range Stack{
+		Put("tmp-",Hash(item),item)
+	}
 }

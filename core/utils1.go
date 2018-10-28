@@ -16,9 +16,10 @@ func IP(addr string) string {
 	return strings.Split(addr, ":")[0]
 }
 
+
 func DecodePrefixReader(r io.Reader) ([]byte, error) {
 	prfx1 := make([]byte, 1)
-	_, err := r.Read(prfx1)
+	_, err := io.ReadFull(r,prfx1)
 	if err != nil {
 		return nil, err
 	}
@@ -26,19 +27,22 @@ func DecodePrefixReader(r io.Reader) ([]byte, error) {
 	if l < 248 {
 
 		blob := make([]byte, l)
-		_, err := r.Read(blob)
+		_, err := io.ReadFull(r,blob)
 		return blob, err
 
 	} else {
 
 		prfx2 := make([]byte, l-247)
-		r.Read(prfx2)
+		_,err:=io.ReadFull(r,prfx2)
+		if err!=nil{
+			return nil,err
+		}
 		ll := BlobToUint64(prfx2)
 		if ll > ReadLimit {
 			return nil, io.EOF
 		}
 		blob := make([]byte, ll)
-		_, err := r.Read(blob)
+		_, err = io.ReadFull(r,blob)
 		return blob, err
 	}
 }
