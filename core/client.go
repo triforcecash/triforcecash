@@ -121,6 +121,7 @@ func Save() {
 }
 
 func Start() {
+	RemoveTmp()
 	Load()
 	Updater()
 	go MineKey()

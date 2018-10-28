@@ -10,10 +10,6 @@ func ListenTCP() {
 	ln, err := net.Listen("tcp", Port)
 	ErrorHandler(err)
 	defer ln.Close()
-		go func(){for{
-			log.Println(s,f)
-			time.Sleep(10*time.Second)
-			}}()
 	for {
 		conn, err := ln.Accept()
 		ErrorHandler(err)

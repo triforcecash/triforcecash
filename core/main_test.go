@@ -34,6 +34,10 @@ func TestSplit(t *testing.T) {
 	t.Log(DecodeHeader(nil))
 }
 
+func TestCleaner(t *testing.T){
+	RemoveTmp()
+}
+
 func TestStart(t *testing.T) {
 	PortHTTP = ":8075"
 	SetSeed([]byte("asd1f1"))

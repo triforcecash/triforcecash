@@ -122,7 +122,6 @@ func HandleStack(blob []byte, key []byte) {
 	if len(Stack)>0 && !bytes.Equal(Hash(Stack[0]),key){
 		return
 	} 
-	var c int
 	for _,item:=range Stack{
 		Put("tmp-",Hash(item),item)
 	}
