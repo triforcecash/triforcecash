@@ -12,18 +12,18 @@ const (
 	txsmaxlen    = 1 << 21
 	txmaxlen     = 1 << 12
 	headermaxlen = 1 << 12
-	Salt = "main.triforcecash.com"
+	Salt         = "main.triforcecash.com"
 	StartTime    = 1540574205
 	BlockTime    = 90
 	checktimeout = 180
 	statelen     = 48
-	
+
 	headprfx      = "head-"
 	stateprfx     = "state-"
 	txsprfx       = "txs-"
 	hostprfx      = "host-"
 	signtokenprfx = "signtoken-"
-	banpubprfx    = "banpub-"	
+	banpubprfx    = "banpub-"
 )
 
 var (
@@ -39,10 +39,6 @@ var (
 	Nonce []byte
 	Priv  []byte
 	Pub   []byte
-
-	fundaccount = []byte{
-		0x4e, 0x64, 0xbe, 0x87, 0x11, 0xe6, 0x59, 0xbb, 0x25, 0x95, 0x1a, 0xfe, 0x71, 0xc7, 0x98, 0xbb, 0xf9, 0x3f, 0x4e, 0xb0, 0x00, 0x6a, 0x43, 0xa4, 0x7e, 0x00, 0xcb, 0x55, 0x69, 0x47, 0x31, 0x3b,
-	}
 
 	Candidates = &CandidatesPool{
 		Candidates: make(map[string]*Header),
@@ -97,7 +93,7 @@ type Block struct {
 type Header struct {
 	Prev   []byte
 	State  []byte
-	Txxs    []byte
+	Txxs   []byte
 	Id     uint64
 	Fee    uint64
 	Pubs   [][]byte
@@ -141,5 +137,5 @@ type Host struct {
 
 func Reward(id uint64) uint64 {
 	const k = 1000000
-	return (maxsupply >> (1 + id/k)) / k
+	return ((maxsupply - 6e10) >> (1 + id/k)) / k
 }

@@ -3,6 +3,7 @@ package core
 import (
 	//"log"
 	"bytes"
+	"encoding/hex"
 	"errors"
 )
 
@@ -106,8 +107,13 @@ func (self *Block) Create() error {
 		self.State.Add(req)
 	}
 	if self.Head.Id == 0 {
-		//instamine developer fund 1%
-		self.State[string(fundaccount)] = &State{Addr: fundaccount, Balance: 1e10, Nonce: 0}
+
+		//instamine developer fund 1% and bounty fund 5%
+		devfund, _ := hex.DecodeString("4e64be8711e659bb25951afe71c798bbf93f4eb0006a43a47e00cb556947313b")
+		bountyfund, _ := hex.DecodeString("dc97d7dada5d6627a1aa67c172e3bab49f98642abcd986598f0d45221a1ac517")
+
+		self.State[string(devfund)] = &State{Addr: devfund, Balance: 1e10, Nonce: 0}
+		self.State[string(bountyfund)] = &State{Addr: bountyfund, Balance: 5e10, Nonce: 0}
 	}
 	self.Head.Fee = fee
 	self.Head.Txs = self.Txs.Cache()

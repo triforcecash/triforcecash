@@ -1,16 +1,16 @@
 package core
 
 import (
-	"net"
 	"log"
+	"net"
 )
 
 func ListenTCP() {
-	defer func(){
-		if r:=recover();r!=nil{
+	defer func() {
+		if r := recover(); r != nil {
 			log.Println(r)
 		}
-		}()
+	}()
 	ln, err := net.Listen("tcp", Port)
 	ErrorHandler(err)
 	defer ln.Close()
@@ -22,7 +22,7 @@ func ListenTCP() {
 }
 
 func HandleConn(conn net.Conn) {
-	if conn!=nil && IP(conn.LocalAddr().String())==IP(conn.RemoteAddr().String()){
+	if conn != nil && IP(conn.LocalAddr().String()) == IP(conn.RemoteAddr().String()) {
 		conn.Close()
 		return
 	}

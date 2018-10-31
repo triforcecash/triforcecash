@@ -190,7 +190,6 @@ func ExplorerServ(res http.ResponseWriter, req *http.Request) {
 	hexkey := req.URL.Query().Get("key")
 	key, _ := hex.DecodeString(hexkey)
 
-
 	var head *Header
 
 	if len(key) < 32 {

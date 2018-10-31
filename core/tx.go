@@ -51,7 +51,7 @@ func (t *Tx) data() []byte {
 	buf.Write(t.Hash)
 
 	buf.Write([]byte(Salt))
-	
+
 	return buf.Bytes()
 }
 
