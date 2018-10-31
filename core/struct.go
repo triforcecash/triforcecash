@@ -12,22 +12,18 @@ const (
 	txsmaxlen    = 1 << 21
 	txmaxlen     = 1 << 12
 	headermaxlen = 1 << 12
+	Salt = "main.triforcecash.com"
 	StartTime    = 1540574205
 	BlockTime    = 90
-	checktimeout = 0
-	dbapi        = "/api/db?key="
-	mineapi      = "/api/mine"
-	apipushtx    = "/api/pushtx"
-	apimainchain = "/api/main"
+	checktimeout = 180
 	statelen     = 48
-	protocol     = "http://"
-
+	
 	headprfx      = "head-"
 	stateprfx     = "state-"
 	txsprfx       = "txs-"
 	hostprfx      = "host-"
 	signtokenprfx = "signtoken-"
-	banpubprfx    = "banpub-"
+	banpubprfx    = "banpub-"	
 )
 
 var (
@@ -36,8 +32,8 @@ var (
 
 	Lobby      = "triforcecash.com"
 	PortHTTP   = ""
-	Mineblocks = false
-	Minecpu    = false
+	Mineblocks bool
+	Minecpu    bool
 	Checkdepth = 1000
 
 	Nonce []byte
@@ -101,7 +97,7 @@ type Block struct {
 type Header struct {
 	Prev   []byte
 	State  []byte
-	Txs    []byte
+	Txxs    []byte
 	Id     uint64
 	Fee    uint64
 	Pubs   [][]byte

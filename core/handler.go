@@ -2,7 +2,6 @@ package core
 
 import (
 	"bytes"
-	"log"
 )
 
 func HandleRequest(blob []byte) []byte {
@@ -15,9 +14,6 @@ func HandleRequest(blob []byte) []byte {
 	body := tmp[1]
 
 	switch action {
-	case "test":
-		log.Println(string(body))
-		return body
 	case "get":
 		return Get("", body)
 	case "get stack":

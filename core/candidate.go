@@ -11,8 +11,8 @@ const (
 )
 
 type CandidatesPool struct {
-	Candidates map[string]*Header
-	Mux        sync.Mutex
+	Candidates map[string]*Header 
+	Mux        sync.Mutex `json:"-"`
 	Difficulty *big.Int
 }
 

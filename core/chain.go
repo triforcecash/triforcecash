@@ -8,7 +8,7 @@ import (
 
 type ChainsPool struct {
 	Chains     map[string]*Chain
-	Mux        sync.Mutex
+	Mux        sync.Mutex `json:"-"`
 	Difficulty *big.Int
 	Main       *Chain
 }

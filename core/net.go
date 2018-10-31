@@ -2,9 +2,15 @@ package core
 
 import (
 	"net"
+	"log"
 )
 
 func ListenTCP() {
+	defer func(){
+		if r:=recover();r!=nil{
+			log.Println(r)
+		}
+		}()
 	ln, err := net.Listen("tcp", Port)
 	ErrorHandler(err)
 	defer ln.Close()
@@ -16,14 +22,11 @@ func ListenTCP() {
 }
 
 func HandleConn(conn net.Conn) {
-	if conn == nil {
+	if conn!=nil && IP(conn.LocalAddr().String())==IP(conn.RemoteAddr().String()){
+		conn.Close()
 		return
 	}
-	if Peers.ConnIsExist(IP(conn.RemoteAddr().String())) {
-		conn.Close()
-	} else {
-		go HandlePeer(NewPeer(conn))
-	}
+	go HandlePeer(NewPeer(conn))
 }
 
 func GetFromNet(prfx string, k []byte, hand func(b []byte) bool) []byte {

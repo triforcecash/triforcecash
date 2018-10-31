@@ -30,9 +30,9 @@ type Peer struct {
 
 type PeersPool struct {
 	Peers   map[string]*Peer
-	Mux     sync.Mutex
-	Num     int
-	Ignored map[string]bool
+	Mux     sync.Mutex `json:"-"`
+	Num     int 
+	Ignored map[string]bool `json:"-"` 
 }
 
 var errconn = errors.New("Connection closed")
@@ -184,14 +184,14 @@ func (self *Peer) Close() {
 
 	conn := self.Conn
 	if conn != nil {
-		conn.Close()
 		self.Conn = nil
+		Peers.NumSub()
+		conn.Close()
 		close(self.WriteChan)
 		close(self.ReadChan)
 		close(self.TmpChan)
 		close(self.ResponseChan)
 		close(self.RequestChan)
-		Peers.NumSub()
 	}
 }
 
@@ -201,6 +201,10 @@ func (self *PeersPool) ConnectToPeers() {
 			if self.Num > MaxPeers/2 {
 				time.Sleep(300 * time.Second)
 				return
+			}
+
+			if self.Num<2{
+				self.Connect(Lobby)
 			}
 			if peer.Conn == nil {
 				go self.Connect(ip)

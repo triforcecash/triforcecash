@@ -5,7 +5,6 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"sync"
 )
@@ -71,7 +70,6 @@ func PeersJson(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 	p := *Peers
 	b, err := json.Marshal(p)
-	log.Println(err)
 	res.Write(b)
 
 }

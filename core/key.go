@@ -40,7 +40,7 @@ func (self *KeysPool) CalcParts() {
 
 type KeysPool struct {
 	Keys       map[string]*Key
-	Mux        sync.Mutex
+	Mux        sync.Mutex `json:"-"`
 	Difficulty *big.Int
 	Total      *big.Int
 }

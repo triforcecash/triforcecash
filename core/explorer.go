@@ -9,7 +9,7 @@ import (
 	"net/http"
 )
 
-var templates, err = template.New("templates").Parse(Templates)
+var templates, _ = template.New("templates").Parse(Templates)
 
 const (
 	Templates = `
@@ -189,9 +189,7 @@ const (
 func ExplorerServ(res http.ResponseWriter, req *http.Request) {
 	hexkey := req.URL.Query().Get("key")
 	key, _ := hex.DecodeString(hexkey)
-	if err != nil {
-		log.Println(err)
-	}
+
 
 	var head *Header
 

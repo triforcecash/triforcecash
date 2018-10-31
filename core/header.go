@@ -69,6 +69,8 @@ func (self *Header) data() []byte {
 		b.Write(e)
 	}
 
+	b.Write([]byte(Salt))
+
 	return b.Bytes()
 }
 

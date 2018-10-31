@@ -49,6 +49,9 @@ func (t *Tx) data() []byte {
 	buf.Write(uint64bytes(t.Nonce))
 	buf.Write(uint64bytes(t.TimeLock))
 	buf.Write(t.Hash)
+
+	buf.Write([]byte(Salt))
+	
 	return buf.Bytes()
 }
 
