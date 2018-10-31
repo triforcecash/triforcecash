@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"html/template"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -246,7 +245,10 @@ func StateToTemplate(state *State) *StateTmplt {
 }
 
 func BlockToTemplate(head *Header) *BlockTmplt {
-	txs, _ := GetTxsList(head.Txs)
+	txs:=TxsList{}
+	if len(head.Txs)!=0{
+		txs, _ = GetTxsList(head.Txs)	
+	}
 	sts, _ := GetState(head.State)
 	return &BlockTmplt{
 		Prev:     fmt.Sprintf("%x", head.Prev),

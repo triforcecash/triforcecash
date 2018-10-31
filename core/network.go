@@ -69,7 +69,7 @@ func TxsJson(res http.ResponseWriter, req *http.Request) {
 func PeersJson(res http.ResponseWriter, req *http.Request) {
 	res.Header().Set("Content-Type", "application/json")
 	p := *Peers
-	b, err := json.Marshal(p)
+	b, _ := json.Marshal(p)
 	res.Write(b)
 
 }
@@ -105,7 +105,7 @@ func PushTx(tx *Tx) {
 
 	var buf bytes.Buffer
 	buf.Write(encodedtx)
-	http.Post(Lobby+apipushtx, "application/octet-stream", &buf)
+	http.Post(Lobby+"/api/pushtx", "application/octet-stream", &buf)
 }
 
 func SendServ(res http.ResponseWriter, req *http.Request) {

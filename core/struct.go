@@ -12,8 +12,8 @@ const (
 	txsmaxlen    = 1 << 21
 	txmaxlen     = 1 << 12
 	headermaxlen = 1 << 12
-	Salt         = "main.triforcecash.com"
-	StartTime    = 1540574205
+	Salt         = "test.triforcecash.com"
+	StartTime    = 1541009424
 	BlockTime    = 90
 	checktimeout = 180
 	statelen     = 48
@@ -93,7 +93,7 @@ type Block struct {
 type Header struct {
 	Prev   []byte
 	State  []byte
-	Txxs   []byte
+	Txs   []byte
 	Id     uint64
 	Fee    uint64
 	Pubs   [][]byte
