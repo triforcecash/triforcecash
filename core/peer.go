@@ -56,7 +56,7 @@ func (self *PeersPool) Connect(ip string) {
 		if err != nil {
 			self.Delete(ip)
 		}
-		ErrorHandler(err)
+		//ErrorHandler(err)
 		go HandlePeer(NewPeer(conn))
 	}
 }

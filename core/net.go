@@ -15,8 +15,8 @@ func ListenTCP() {
 	ErrorHandler(err)
 	defer ln.Close()
 	for {
-		conn, err := ln.Accept()
-		ErrorHandler(err)
+		conn, _ := ln.Accept()
+		//ErrorHandler(err)
 		HandleConn(conn)
 	}
 }

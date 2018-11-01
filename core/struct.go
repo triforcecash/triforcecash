@@ -12,8 +12,8 @@ const (
 	txsmaxlen    = 1 << 21
 	txmaxlen     = 1 << 12
 	headermaxlen = 1 << 12
-	Salt         = "test.triforcecash.com"
-	StartTime    = 1541009424
+	Salt         = "main.triforcecash.com"
+	StartTime    = 1541090033
 	BlockTime    = 90
 	checktimeout = 180
 	statelen     = 48
