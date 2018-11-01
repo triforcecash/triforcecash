@@ -16,9 +16,7 @@ Password for account, anyone who knows them can dispose of account.
 It should be random and long so that it cannot be cracked.
 The program does not store it, if you lose the seed, you will lose access to the account.
 ### -port
-Port (default 8075) 
-### -host
-Your public ip (required for mining).
+For explorer and external miner
 ### -lobby
 Should specify if default lobby does not work.
 ## Example
@@ -29,7 +27,7 @@ chmod +x triforcecash_node_linux_amd64
 ```
 ### Run
 ```bash
-nohup ./triforcecash_node_linux_amd64 -seed mypassword -host 123.123.123.123 & 
+nohup ./triforcecash_node_linux_amd64 -seed mypassword -port 123.123.123.123 & 
 ```
 System time should be set correctly.
 Port 8075 must be open for tcp connections.
