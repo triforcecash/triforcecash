@@ -22,16 +22,15 @@ Should specify if default lobby does not work.
 ## Example
 ### Download 
 ```bash
-wget https://github.com/triforcecash/triforcecash/releases/download/0.7/triforcecash_node_linux_amd64
-chmod +x triforcecash_node_linux_amd64
+wget https://github.com/triforcecash/triforcecash/releases/download/1.0/node
+chmod +x node
 ```
 ### Run
 ```bash
-nohup ./triforcecash_node_linux_amd64 -seed mypassword -port 123.123.123.123 & 
+nohup ./node -seed mypassword -port 8080 & 
 ```
 System time should be set correctly.
-Port 8075 must be open for tcp connections.
-To check in browser enter address your_ip:8075/api/hosts
+To check in browser enter address your_ip:port/api/peers
 Never run two nodes with same seeds.
 ### Stop
 ```bash
@@ -51,10 +50,6 @@ Enter the node ip address and port after the -host flag.
  ./triforcecash_cpu_miner_linux_amd64 -host 127.0.0.1:8075 -publickey a363f3675039caf20b8f805479051482e3c87b69d39b9b94f568778e8335a586 -threads 6
 ```
 ## API
-Run node or gui with flag -host local
-```bash
-./triforcecash_node_linux_amd64 -host local
-```
 ### Create Account
 
 #### Python2.7:
@@ -63,7 +58,7 @@ import json
 import requests
 myseed=b'passwordpasswordpasswordpassword'
 jsn={"Seed":myseed.encode("base64")}
-req=requests.post("http://185.234.15.72:8075/api/genaccount",json.dumps(jsn))
+req=requests.post("http://triforcecash.com:8080/api/genaccount",json.dumps(jsn))
 jsn=req.json()
 jsn["Addr"].decode("base64").encode("hex")
 #'2b560d9daefc215c84eebec91c47893c616df5f4ab615cdee6ae83437a091878'
@@ -84,13 +79,13 @@ amount=100
 fee=1
 #byte arrays values must be encoded in base64
 jsn={"Seed":myseed.encode("base64"),"Addr":addr.encode("base64"),"Amount":amount,"Fee":fee}
-requests.post("http://185.234.15.72:8075/api/send",json.dumps(jsn))
+requests.post("http://triforcecash.com:8080/api/send",json.dumps(jsn))
 ```
 ### Get account state
 #### Python2.7
 ```python
 import requests
 addr=b'2b560d9daefc215c84eebec91c47893c616df5f4ab615cdee6ae83437a091878'
-req=requests.get("http://185.234.15.72:8075/api/statejson?key="+addr)
+req=requests.get("http://triforcecash.com:8080/api/statejson?key="+addr)
 req.json()
 #{u'Nonce': 1, u'Balance': 99, u'Addr': u'K1YNna78IVyE7r7JHEeJPGFt9fSrYVze5q6DQ3oJGHg=', u'Confirm': 838}
