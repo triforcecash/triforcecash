@@ -23,6 +23,7 @@ func (self *TxsPool) Sync() {
 			return true
 		})
 	self.AddNew(res)
+	self.RemoveTxs()
 }
 
 func (self *TxsPool) Add(tx *Tx) {
@@ -97,4 +98,32 @@ func (self *TxsPool) DeleteTxs(txslist TxsList) {
 		delete(self.Txs, string(t.SelfHash()))
 	}
 	return
+}
+
+func (self *TxsPool) Senders() []string {
+	var senders []string
+	self.Mux.Lock()
+	defer self.Mux.Unlock()
+	for _, tx := range self.Txs {
+		senders = append(senders, tx.Sender())
+	}
+	return senders
+}
+
+func (self *TxsPool) RemoveTxs() {
+	defer func() {
+		recover()
+	}()
+	if main:=Main; main != nil {
+		req := make(StateMap)
+		req.Select(self.Senders())
+		res := make(StateMap)
+		Main.Higher.Search(res, req, period)
+		for key, tx := range self.Txs {
+			if !tx.Transfer(res){
+				delete(self.Txs,key)
+			}
+
+		}
+	}
 }
