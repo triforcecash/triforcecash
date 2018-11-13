@@ -168,7 +168,8 @@ func CurrentId() uint64 {
 	return uint64((time.Now().Unix() - StartTime) / BlockTime)
 }
 
-func CreateNewBlock(curid uint64) {
+func CreateNewBlock() {
+	curid:=CurrentId()
 	if Mineblocks {
 		if Main != nil {
 			if Main.Higher.Id < curid {
@@ -197,8 +198,7 @@ func Updater() {
 	go func() {
 		Chains.Update()
 		for {
-			cid := CurrentId()
-			CreateNewBlock(cid)
+			CreateNewBlock()
 			Chains.Update()
 			time.Sleep(250 * time.Millisecond)
 		}

@@ -135,10 +135,28 @@ func Start() {
 	go func() {
 		for {
 			Keys.Sync()
-			Peers.Sync()
-			Candidates.Sync()
-			Txs.Sync()
 			time.Sleep(10 * time.Second)
+		}
+	}()
+
+	go func(){
+		for{
+			Peers.Sync()
+			time.Sleep(10*time.Second)
+		}
+		}()
+
+	go func(){
+		for{
+			Candidates.Sync()
+			time.Sleep(10 * time.Second)
+		}
+		}()
+
+	go func(){
+		for{
+			Txs.Sync()
+			time.Sleep(10*time.Second)
 		}
 	}()
 	Serve()
