@@ -53,8 +53,8 @@ func (self *KeysPool) IncreaseDifficulty() {
 func (self *KeysPool) DecreaseDifficulty() {
 	self.Difficulty.Mul(self.Difficulty, big.NewInt(99))
 	self.Difficulty.Div(self.Difficulty, big.NewInt(100))
-	if self.Difficulty.Cmp(big.NewInt(1000)) == -1 {
-		self.Difficulty.SetInt64(1000)
+	if self.Difficulty.Cmp(big.NewInt(1e9)) == -1 {
+		self.Difficulty.SetInt64(1e9)
 	}
 }
 

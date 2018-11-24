@@ -107,7 +107,7 @@ func SetSeed(seed []byte) ([]byte, []byte, []byte) {
 func Load() {
 	b := Get("", []byte("chains"))
 	if b != nil {
-		json.Unmarshal(b, &Chains)
+		//json.Unmarshal(b, &Chains)
 	}
 }
 
