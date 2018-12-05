@@ -38,9 +38,18 @@ func TestCleaner(t *testing.T) {
 	RemoveTmp()
 }
 
-func TestStart(t *testing.T) {
+func TestReward(t *testing.T){
+	reward:=uint64(0) 
+	for i:=uint64(0) ;i<20e6;i++{
+		reward+=Reward(i)
+	}	
+
+	t.Log(reward)
+}
+
+/*func TestStart(t *testing.T) {
 	PortHTTP = ":8075"
 	SetSeed([]byte("asd1f1"))
 	Keys.AddSelf()
 	Start()
-}
+}*/

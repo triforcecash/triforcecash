@@ -134,6 +134,7 @@ func SendServ(res http.ResponseWriter, req *http.Request) {
 		tx.Nonce = s.Nonce
 		tx.Sign(txreq.Seed)
 		PushTx(tx)
+		res.Write(tx.Encode())
 
 	}
 }
